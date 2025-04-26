@@ -1,4 +1,4 @@
-// app.js
+// backend/app.js
 
 // Load environment variables
 require('dotenv').config();
@@ -6,16 +6,16 @@ require('dotenv').config();
 // Import required modules
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2');
-const authRoutes = require('./routes/authRoutes');
+const cors = require('cors');
 
-// Initialize the Express app
+const authRoutes = require('./src/routes/web'); // Correct path
+
+// Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
-const cors = require('cors');
-app.use(cors()); // <--- Add this before routes
 
 // Middleware
+app.use(cors());
 app.use(bodyParser.json());
 
 // Routes
