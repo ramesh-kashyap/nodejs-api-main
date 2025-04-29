@@ -1,13 +1,15 @@
-// backend/routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
+const authController = require('../controller/AuthController');
 
-// Example: GET all users
+
+router.post('/register', authController.register);
+router.post('/login', authController.login);
 router.get('/', (req, res) => {
-    res.json([{ id: 1, name: 'John' }, { id: 2, name: 'Alice' }]);
+  res.json({ message: 'Welcome to the authentication API' });
 });
-router.get('/test', (req, res) => {
-  res.json({ message: 'Frontend is connected to Backend successfully!' });
-});
+// router.post('/register', (req, res) => {
+//   res.json({ message: 'Welcome to regiset' });
+// });
 
 module.exports = router;
