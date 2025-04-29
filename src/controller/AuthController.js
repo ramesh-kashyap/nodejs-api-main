@@ -4,7 +4,6 @@ require('dotenv').config();
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const register = async (req, res) => {
-    console.log(req.body);
     try {
         const { phone, email, password, sponsor } = req.body;
         
@@ -42,7 +41,6 @@ const register = async (req, res) => {
             order: [['id', 'DESC']]
         });
         const parentId = lastUser ? lastUser.id : null;
-         console.log(sponsorUser.level);
         // Provide a default for sponsor level if it's undefined or null
         const sponsorLevel = (sponsorUser.level !== undefined && sponsorUser.level !== null)
             ? sponsorUser.level
@@ -75,7 +73,6 @@ const register = async (req, res) => {
 
 
 const login = async (req, res) => {
-    console.log('hell');
 
     try {
       // Destructure username and password from the request body.
@@ -83,11 +80,9 @@ const login = async (req, res) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!emailRegex.test(email)) {
-          console.log('Invalid email address');
           return res.status(400).json({ error: "Invalid email address" });
       }
       if (!email || !password) {
-        console.log('User not found!');
         return res.status(400).json({ error: "Username and Password are required!" });
       }
          
@@ -95,15 +90,12 @@ const login = async (req, res) => {
       const user = await User.findOne({ where: { email } });
        
       if (!user) {
-        console.log('User not found!')
         return res.status(400).json({ error: "User not found!" });
 
       }
-      console.log("user:",user );
       // Compare the provided password with the stored hashed password.
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        console.log('Invalid credentials!')
         return res.status(400).json({ error: "Invalid credentials!" });
       }
   
@@ -125,5 +117,6 @@ const login = async (req, res) => {
       return res.status(500).json({ status:false , error: "Server error", details: error.message });
     }
   };
+
 
 module.exports = { register ,login};
