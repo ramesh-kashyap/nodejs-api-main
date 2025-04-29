@@ -8,6 +8,7 @@ router.post('/login', authController.login);
 router.get('/', (req, res) => {
   res.json({ message: 'Welcome to the authentication API' });
 });
+// router.get('/me', userController.getUserDetails);
 // router.post('/register', (req, res) => {
 //   res.json({ message: 'Welcome to regiset' });
 // });

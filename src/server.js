@@ -1,6 +1,6 @@
-require('dotenv').config();
-const app = require('./app');
-const sequelize = require('./config/connectDB');  // Remove the destructuring
+ require('dotenv').config();
+//  const app = require("./app"); // 👈 Make sure this is at the top
+ const sequelize = require('./config/connectDB');  // Remove the destructuring
 
 const PORT = process.env.PORT || 5000;
 
