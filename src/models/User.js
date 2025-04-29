@@ -25,15 +25,15 @@ const User = sequelize.define('User', {
         allowNull: false,
         unique: true
     },
-    // user_name: {
-    //     type: DataTypes.STRING,
-    //     allowNull: true,
-    // },
+    usdtTrc20: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
    
-    // fullname: {
-    //     type: DataTypes.STRING,
-    //     allowNull: false
-    // },
+    usdtBep20: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     // lastname: {
     //     type: DataTypes.STRING,
     //     allowNull: false
