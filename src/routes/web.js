@@ -9,7 +9,7 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.get('/', (req, res) => {
   res.json({ message: 'Welcome to the authentication API' });
-});
+});                             
 
 router.get('/levelteam',  authMiddleware,UserController.levelTeam);
 router.get('/directeam',  authMiddleware,UserController.direcTeam);
