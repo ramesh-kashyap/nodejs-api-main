@@ -386,7 +386,7 @@ const fetchwallet = async (req, res) => {
     console.log(req.body);
     try {
       const userId = req.user?.id;
-      const { amount, otp } = req.body;
+      const { wallet ,amount, verificationCode , type} = req.body;
   
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated!" });
@@ -399,7 +399,7 @@ const fetchwallet = async (req, res) => {
       const [otpRecord] = await sequelize.query(
         'SELECT * FROM password_resets WHERE email = ? AND token = ? ORDER BY created_at DESC LIMIT 1',
         {
-          replacements: [user.email, otp],
+          replacements: [user.email, verificationCode],
           type: sequelize.QueryTypes.SELECT
         }
       );
@@ -417,8 +417,11 @@ const fetchwallet = async (req, res) => {
       }
       await Withdraw.create({
         user_id: userId,
+        user_id_fk: user.username,
         amount: parseFloat(amount),
-        status: 'pending' 
+        status: 'pending',
+        account: wallet,
+        payment_mode: type, 
       });
   
       return res.status(200).json({
