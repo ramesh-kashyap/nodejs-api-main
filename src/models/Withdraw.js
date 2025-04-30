@@ -4,6 +4,7 @@ const sequelize = require('../config/connectDB');
 const Withdraw = sequelize.define('Withdraw', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     user_id: { type: DataTypes.INTEGER, allowNull: true },
+    user_id_fk: { type: DataTypes.STRING, allowNull: true },
     amount: { type: DataTypes.FLOAT, allowNull: true },
     charge: { type: DataTypes.FLOAT, allowNull: true },
     payable_amt: { type: DataTypes.FLOAT, allowNull: true },
