@@ -435,6 +435,7 @@ const fetchwallet = async (req, res) => {
     }
   };
   
+
   const saveWalletAddress = async (req, res) => {
     try {
       const userId = req.user?.id;
@@ -492,7 +493,4 @@ const fetchwallet = async (req, res) => {
   
 
 
-
-
-
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal};
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, saveWalletAddress};
