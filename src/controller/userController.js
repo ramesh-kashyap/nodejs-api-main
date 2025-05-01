@@ -489,9 +489,5 @@ const fetchwallet = async (req, res) => {
       return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
   };
-  
-  
 
-
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, saveWalletAddress};
-
+ module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, saveWalletAddress};
