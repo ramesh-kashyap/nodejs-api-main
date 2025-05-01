@@ -59,7 +59,7 @@ const available_balance = async (req, res) => {
     const investment = await Investment.sum('invest_amount', { where: { user_id: userId } }) || 0;
     const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
   
-    const availableBal = totalCommission + buyFunds - totalWithdraw + investment;
+    const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
   
     return parseFloat(availableBal.toFixed(2));
   };
