@@ -5,75 +5,44 @@ const Withdraw = require('../models/Withdraw');
 const BuyFund = require('../models/BuyFunds');
 const Server = require('../models/Servers');
 const { calculateAvailableBalance } = require("../helper/helper");
-// const axios = require('axios');
+const axios = require('axios');
 const sequelize = require('../config/connectDB');
 const Investment = require('../models/Investment');
 const crypto = require('crypto');
 
 
 const available_balance = async (req, res) => {
-  try {
-    console.log("➡️ Controller reached");
-
-    const userId = req.user?.id;
-    console.log("🧑 User ID:", userId);
-
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated!" });
-    }
-
-    const user = await User.findOne({ where: { id: userId } });
-    console.log("✅ User found:", user?.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found!" });
-    }
-
-    // Add try/catch per query to catch exact error
-    let totalCommission = 0, buyFunds = 0, investment = 0, totalWithdraw = 0;
-
     try {
-      totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
-      console.log("💰 totalCommission:", totalCommission);
-    } catch (err) {
-      console.error("❌ Error in Income.sum:", err);
+      const userId = req.user?.id;
+  
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }
+  
+      const user = await User.findOne({ where: { id: userId } });
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+  
+      const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
+      const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
+      const investment = await Investment.sum('invest_amount', { where: { user_id: userId } }) || 0;
+      const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
+  
+      const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
+  
+      return res.status(200).json({
+        success: true,
+        AvailBalance: availableBal.toFixed(2),
+        message: "Amount fetched successfully!"
+      });
+  
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
     }
-
-    try {
-      buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
-      console.log("💸 buyFunds:", buyFunds);
-    } catch (err) {
-      console.error("❌ Error in BuyFund.sum:", err);
-    }
-
-    try {
-      investment = await Investment.sum('invest_amount', { where: { user_id: userId } }) || 0;
-      console.log("📉 investment:", investment);
-    } catch (err) {
-      console.error("❌ Error in Investment.sum:", err);
-    }
-
-    try {
-      totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
-      console.log("🏦 totalWithdraw:", totalWithdraw);
-    } catch (err) {
-      console.error("❌ Error in Withdraw.sum:", err);
-    }
-
-    const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
-
-    return res.status(200).json({
-      success: true,
-      AvailBalance: availableBal.toFixed(2),
-      message: "Amount fetched successfully!"
-    });
-
-  } catch (error) {
-    console.error("❌ Something went wrong in available_balance:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
+  };
   
   const getAvailableBalance = async (userId) => {
     if (!userId) {
@@ -629,80 +598,7 @@ const fetchwallet = async (req, res) => {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
-  // Assuming `authMiddleware` already handles authentication and attaches `req.user.id`
- // Import Investment model
-
-// Controller function to fetch investment details for the logged-in user
-const getInvestments = async (req, res) => {
-  try {
-    // Get user ID from authenticated user (authMiddleware will attach it)
-    const userId = req.user?.id;
-
-    // Debugging: Log the user data to check if it's properly attached to the request
-    console.log("Authenticated user:", req.user);
-
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated!" });
-    }
-
-    // Fetch investment data for the logged-in user
-    const investments = await Investment.findAll({
-      where: { user_id: userId }, // Filter by user_id (logged-in user's ID)
-      attributes: ['created_at', 'amount', 'status'], // Specify the fields you want to fetch
-      order: [['created_at', 'DESC']], // Optional: Order investments by most recent first
-    });
-
-    if (!investments || investments.length === 0) {
-      return res.status(404).json({ message: "No investments found for this user!" });
-    }
-
-    // Send the fetched investment data in the response
-    return res.status(200).json({
-      success: true,
-      investments,
-    });
-
-  } catch (error) {
-    console.error("Error in fetching investment data:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-const withdrawHistory = async (req, res) => {
-  try {
-    // Get user ID from authenticated user (authMiddleware will attach it)
-    const userId = req.user?.id;
-
-    // Debugging: Log the user data to check if it's properly attached to the request
-    console.log("Authenticated user:", req.user);
-
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated!" });
-    }
-
-    // Fetch investment data for the logged-in user
-    const withdraw = await Withdraw.findAll({
-      where: { user_id: userId }, // Filter by user_id (logged-in user's ID)
-      attributes: ['created_at', 'amount', 'status'], // Specify the fields you want to fetch
-      order: [['created_at', 'DESC']], // Optional: Order investments by most recent first
-    });
-
-    if (!investments || investments.length === 0) {
-      return res.status(404).json({ message: "No investments found for this user!" });
-    }
-
-    // Send the fetched investment data in the response
-    return res.status(200).json({
-      success: true,
-      investments,
-    });
-
-  } catch (error) {
-    console.error("Error in fetching investment data:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
+  
   
 
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver,getInvestments};
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver};
