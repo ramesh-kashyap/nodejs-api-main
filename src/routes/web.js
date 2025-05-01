@@ -19,10 +19,10 @@ router.get('/availbal', authMiddleware, UserController.available_balance);
 router.get('/withreq', authMiddleware, UserController.withreq);
 router.post('/sendotp', authMiddleware, UserController.sendotp);
 router.post('/process-withdrawal', authMiddleware, UserController.processWithdrawal);
-
-router.post("/save-address/:networkType", authMiddleware, UserController.saveWalletAddress);
-
-
+router.get('/fetchserver', authMiddleware, UserController.fetchserver);
+router.post('/submitserver', authMiddleware, UserController.submitserver);
+router.get('/fetchrenew', authMiddleware, UserController.fetchrenew);
+router.post('/renew-server', authMiddleware, UserController.renewserver);
 // router.post('/register', (req, res) => {
 //   res.json({ message: 'Welcome to regiset' });
 // });

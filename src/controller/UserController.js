@@ -2,11 +2,16 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const Income = require('../models/Income');
 const Withdraw = require('../models/Withdraw');
+const BuyFund = require('../models/BuyFunds');
+const Server = require('../models/Servers');
 const { calculateAvailableBalance } = require("../helper/helper");
 const axios = require('axios');
 const sequelize = require('../config/connectDB');
+const Investment = require('../models/Investment');
+const crypto = require('crypto');
 
-const available_balance = async (req, res) => { 
+
+const available_balance = async (req, res) => {
     try {
       const userId = req.user?.id;
   
@@ -19,12 +24,13 @@ const available_balance = async (req, res) => {
       if (!user) {
         return res.status(404).json({ message: "User not found!" });
       }
-      const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;   
-      if (totalCommission <= 0) {
-        return res.status(400).json({ message: "You don't have enough balance to withdraw." });
-      }
+  
+      const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
+      const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
+      const investment = await Investment.sum('invest_amount', { where: { user_id: userId } }) || 0;
       const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
-      const availableBal = totalCommission - totalWithdraw;
+  
+      const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
   
       return res.status(200).json({
         success: true,
@@ -37,7 +43,26 @@ const available_balance = async (req, res) => {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
-
+  
+  const getAvailableBalance = async (userId) => {
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+  
+    const user = await User.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error("User not found");
+    }
+  
+    const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
+    const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
+    const investment = await Investment.sum('invest_amount', { where: { user_id: userId } }) || 0;
+    const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
+  
+    const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
+  
+    return parseFloat(availableBal.toFixed(2));
+  };
 //   const availbalance = async (req, res) => { 
 //     try {
 //       const userId = req.user?.id;
@@ -78,7 +103,7 @@ const fetchTeamRecursive = async (userId, allMembers = []) => {
 
     for (const member of directMembers) {
         allMembers.push(member);
-        await fetchTeamRecursive(member.id, allMembers); // recursively fetch members under this member
+        await fetchTeamRecursive(member.id, allMembers); 
     }
 
     return allMembers;
@@ -215,7 +240,6 @@ const fetchwallet = async (req, res) => {
             type: blockchain,
             status: 'Approved',
             bdate: now,
-            createdAt: now,
           });
   
           // ✅ Update usdtBalance in users table
@@ -349,7 +373,7 @@ const fetchwallet = async (req, res) => {
   
       const email = user.email;
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const createdAt = new Date(); 
+      const created_at = new Date(); 
       const [existing] = await sequelize.query(
         'SELECT * FROM password_resets WHERE email = ?',
         {
@@ -370,7 +394,7 @@ const fetchwallet = async (req, res) => {
       await sequelize.query(
         'INSERT INTO password_resets (email, token, created_at) VALUES (?, ?, ?)',
         {
-          replacements: [email, otp, createdAt],
+          replacements: [email, otp, created_at],
           type: sequelize.QueryTypes.INSERT,
         }
       );
@@ -407,10 +431,7 @@ const fetchwallet = async (req, res) => {
       if (!otpRecord) {
         return res.status(400).json({ message: "Invalid or expired OTP!" });
       }
-  
-      const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
-      const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
-      const availableBal = totalCommission - totalWithdraw;
+      const availableBal = await getAvailableBalance(userId);
   
       if (parseFloat(amount) > availableBal) {
         return res.status(400).json({ message: "Insufficient balance!" });
@@ -434,8 +455,150 @@ const fetchwallet = async (req, res) => {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
+
+  const fetchserver = async (req, res) => { 
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }  
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      } 
+    //   const amount = parseFloat(amount);
+    const server = await Server.findAll();
+      return res
+        .status(200).json({success: true, server: server});
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  
+  const submitserver = async (req, res) => { 
+    console.log(req.body);
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      } 
+      const { plan, amount, period } = req.body;  
+      const availableBal = await getAvailableBalance(userId);
+  
+      if (parseFloat(availableBal) < parseFloat(amount)) {
+        return res.status(400).json({ success: false, message: "Insufficient balance!" });
+      }
+      const serverhash = crypto.randomBytes(12).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
+  
+      const server = await Investment.create({
+        user_id: userId,
+        plan: plan,
+        invest_amount: amount,
+        period: period,
+        amount: amount,
+        serverhash: serverhash,
+        sdate: new Date()
+      });
+  
+      return res.status(200).json({ success: true, server: server });
+  
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
+  const { Op } = require("sequelize");
+
+  const fetchrenew = async (req, res) => { 
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+      const server = await Investment.findAll({
+        where: {
+          user_id: userId,
+          sdate: {
+            [Op.lt]: thirtyDaysAgo
+          }
+        },
+        attributes: ['serverhash', 'plan', 'sdate', 'amount'] // only select these two fields
+      });
+      return res.status(200).json({ success: true, server });
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
+  const renewserver = async (req, res) => {
+    console.log(req.body);
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }
+  
+      const { serverhash, amount } = req.body;
+  
+      if (!serverhash || !amount) {
+        return res.status(400).json({ message: "Missing serverhash or amount!" });
+      }
+  
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+  
+      // Check user balance
+      const availableBal = await getAvailableBalance(userId);
+      if (parseFloat(availableBal) < parseFloat(amount)) {
+        return res.status(400).json({ success: false, message: "Insufficient balance!" });
+      }
+  
+      // Find server
+      const server = await Investment.findOne({
+        where: {
+          serverhash: serverhash,
+          user_id: userId
+        }
+      });
+  
+      if (!server) {
+        return res.status(404).json({ success: false, message: "Server not found!" });
+      }
+  
+      // Update server sdate to current time
+      server.sdate = new Date();
+      await Investment.increment(
+        { invest_amount: parseFloat(amount) },
+        { where: { serverhash, user_id: userId } }
+      );
+      
+      server.invest_amount = parseFloat(server.invest_amount) + parseFloat(amount);
+      await server.save();
+  
+      return res.status(200).json({ success: true, message: "Server renewed successfully", server });
+  
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
   
   
 
-
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal};
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver};
