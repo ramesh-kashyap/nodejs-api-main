@@ -588,8 +588,8 @@ const fetchwallet = async (req, res) => {
         { where: { serverhash, user_id: userId } }
       );
       
-      server.invest_amount = parseFloat(server.invest_amount) + parseFloat(amount);
-      await server.save();
+      // server.invest_amount = parseFloat(server.invest_amount) + parseFloat(amount);
+      // await server.save();
   
       return res.status(200).json({ success: true, message: "Server renewed successfully", server });
   
@@ -599,6 +599,41 @@ const fetchwallet = async (req, res) => {
     }
   };
   
-  
+  const fetchservers = async (req, res) => { 
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }    
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }   
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver};
+      const server = await Investment.findAll({
+        where: {
+          user_id: userId,
+          sdate: {
+            [Op.gte]: thirtyDaysAgo // ✅ Newer than 30 days ago
+          }
+        },
+        order: [
+          ['sdate', 'DESC']
+        ],
+        limit: 5,
+        attributes: ['serverhash', 'plan', 'sdate', 'amount'],
+      });
+
+      return res.status(200).json({
+        success: true,
+        server
+      });
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers};
