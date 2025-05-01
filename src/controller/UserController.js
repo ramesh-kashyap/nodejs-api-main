@@ -487,7 +487,7 @@ const fetchwallet = async (req, res) => {
       if (!user) {
         return res.status(404).json({ message: "User not found!" });
       } 
-      const { plan, amount, period } = req.body;  
+      const { plan, amount, period , period_end} = req.body;  
       const availableBal = await getAvailableBalance(userId);
   
       if (parseFloat(availableBal) < parseFloat(amount)) {
@@ -500,6 +500,7 @@ const fetchwallet = async (req, res) => {
         plan: plan,
         invest_amount: amount,
         period: period,
+        period_end: period_end,
         amount: amount,
         serverhash: serverhash,
         sdate: new Date()
@@ -623,7 +624,7 @@ const fetchwallet = async (req, res) => {
           ['sdate', 'DESC']
         ],
         limit: 5,
-        attributes: ['serverhash', 'plan', 'sdate', 'amount'],
+        attributes: ['serverhash', 'plan', 'sdate', 'amount', 'period', 'period_end'],
       });
 
       return res.status(200).json({
