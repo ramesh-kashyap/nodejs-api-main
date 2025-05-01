@@ -435,7 +435,62 @@ const fetchwallet = async (req, res) => {
     }
   };
   
+
+  const saveWalletAddress = async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const { address, verificationCode, networkType } = req.body;
+  
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }
+  
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+  
+      // Verify OTP from password_resets table
+      const [otpRecord] = await sequelize.query(
+        'SELECT * FROM password_resets WHERE email = ? AND token = ? ORDER BY created_at DESC LIMIT 1',
+        {
+          replacements: [user.email, verificationCode],
+          type: sequelize.QueryTypes.SELECT
+        }
+      );
+  
+      if (!otpRecord) {
+        return res.status(400).json({ message: "Invalid or expired verification code!" });
+      }
+  
+      const type = networkType?.toLowerCase().trim();
+
+      // Compare current address with saved one
+      if (type === "erc20") {
+        if (user.usdtBep20 === address) {
+          return res.status(200).json({ message: "This ERC20 address is already saved.", alreadySaved: true });
+        }
+        user.usdtBep20 = address;
+      } else if (type === "trc20") {
+        if (user.usdtTrc20 === address) {
+          return res.status(200).json({ message: "This TRC20 address is already saved.", alreadySaved: true });
+        }
+        user.usdtTrc20 = address;
+      } else {
+        return res.status(400).json({ message: "Invalid network type!" });
+      }
+  
+      await user.save();
+  
+      return res.status(200).json({ success: true, message: "Address saved successfully!" });
+  
+    } catch (error) {
+      console.error("Error saving wallet address:", error);
+      return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+  };
+  
   
 
 
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal};
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, saveWalletAddress};

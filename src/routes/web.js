@@ -10,7 +10,7 @@ router.post('/login', authController.login);
 router.get('/', (req, res) => {
   res.json({ message: 'Welcome to the authentication API' });
 });                             
-
+router.get('/user', authMiddleware, authController.getUserDetails);
 router.get('/levelteam',  authMiddleware,UserController.levelTeam);
 router.get('/directeam',  authMiddleware,UserController.direcTeam);
 router.get('/fetchwallet', authMiddleware, UserController.fetchwallet);
@@ -19,6 +19,10 @@ router.get('/availbal', authMiddleware, UserController.available_balance);
 router.get('/withreq', authMiddleware, UserController.withreq);
 router.post('/sendotp', authMiddleware, UserController.sendotp);
 router.post('/process-withdrawal', authMiddleware, UserController.processWithdrawal);
+
+router.post("/save-address/:networkType", authMiddleware, UserController.saveWalletAddress);
+
+
 // router.post('/register', (req, res) => {
 //   res.json({ message: 'Welcome to regiset' });
 // });
