@@ -23,6 +23,7 @@ router.get('/fetchserver', authMiddleware, UserController.fetchserver);
 router.post('/submitserver', authMiddleware, UserController.submitserver);
 router.get('/fetchrenew', authMiddleware, UserController.fetchrenew);
 router.post('/renew-server', authMiddleware, UserController.renewserver);
+router.get('/fetchservers', authMiddleware, UserController.fetchservers);
 // router.post('/register', (req, res) => {
 //   res.json({ message: 'Welcome to regiset' });
 // });
