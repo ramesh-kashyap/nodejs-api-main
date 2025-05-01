@@ -6,6 +6,7 @@ const Investment = sequelize.define('Investment', {
     plan: { type: DataTypes.STRING, allowNull: true },
     invest_amount: { type: DataTypes.INTEGER, allowNull: true },
     period: { type: DataTypes.INTEGER, allowNull: true },
+    period_end: { type: DataTypes.INTEGER, allowNull: true },
     user_id: { type: DataTypes.INTEGER, allowNull: true },
     amount: { type: DataTypes.DOUBLE, allowNull: true },
     serverhash: { type: DataTypes.STRING, allowNull: true },
