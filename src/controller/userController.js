@@ -494,3 +494,4 @@ const fetchwallet = async (req, res) => {
 
 
 module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, saveWalletAddress};
+
