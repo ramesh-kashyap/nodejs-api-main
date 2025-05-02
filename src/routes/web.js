@@ -2,7 +2,13 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controller/AuthController');
 const UserController = require('../controller/UserController');
-const authMiddleware = require("../middleware/authMiddleware"); // JWT Auth Middleware
+const TeamController = require('../controller/TeamController');
+
+const authMiddleware = require("../middleware/authMiddleware"); 
+
+
+
+// JWT Auth Middleware
 
 
 router.post('/register', authController.register);
@@ -12,6 +18,8 @@ router.get('/', (req, res) => {
 });
 
 router.get('/levelteam',  authMiddleware,UserController.levelTeam);
+router.post("/team", authMiddleware ,TeamController.getTeam);
+router.get('/list', authMiddleware,TeamController.listUsers);
 router.get('/directeam',  authMiddleware,UserController.direcTeam);
 router.get('/fetchwallet', authMiddleware, UserController.fetchwallet);
 router.get('/dynamic-upi-callback', UserController.dynamicUpiCallback);

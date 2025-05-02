@@ -2,7 +2,7 @@ require('dotenv').config();
 const app = require('./app');
 const sequelize = require('./config/connectDB');  // Remove the destructuring
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 sequelize.authenticate()  // This checks if the database connection is successful
   .then(() => {
