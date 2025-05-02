@@ -122,31 +122,131 @@ const login = async (req, res) => {
       return res.status(500).json({ status:false , error: "Server error", details: error.message });
     }
   };
-  const getUserDetails = async (req, res) => {
+
+
+
+
+  const forgotPassword = async (req, res) => {
     try {
-      const userId = req.user?.id;
+      const { email, password, password_confirmation, verification_code } = req.body;
   
-      if (!userId) {
-        return res.status(401).json({ message: "User not authenticated!" });
+      if (!email || !password || !password_confirmation || !verification_code) {
+        return res.status(400).json({ message: "All fields are required!" });
       }
   
-      const user = await User.findOne({ where: { id: userId } });
+      if (password !== password_confirmation) {
+        return res.status(400).json({ message: "Passwords do not match!" });
+      }
+  
+      const [otpRecord] = await sequelize.query(
+        'SELECT * FROM password_resets WHERE email = ? AND token = ? ORDER BY created_at DESC LIMIT 1',
+        {
+          replacements: [email, verification_code],
+          type: sequelize.QueryTypes.SELECT
+        }
+      );
+  
+      if (!otpRecord) {
+        return res.status(400).json({ message: "Invalid or expired verification code!" });
+      }
+  
+      const user = await User.findOne({ where: { email } });
   
       if (!user) {
         return res.status(404).json({ message: "User not found!" });
       }
   
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+      user.PSR = password;
+      await user.save();
+  
+     
+      // await password_resets.destroy({ where: { email, token: verification_code } });
+  
       return res.status(200).json({
-        id: user.id,
-        username: user.username,
-        name: user.name, // Assuming your model has a 'name' field
-        email: user.email, // Assuming 'email' field exists in the user model
-        message: "User details fetched successfully"
+        success: true,
+        message: "Password reset successfully!"
       });
+  
     } catch (error) {
-      console.error("Error fetching user details:", error);
+      console.error("Forgot password error:", error);
       return res.status(500).json({ message: "Internal Server Error" });
     }
   };
   
-module.exports = { register ,login,getUserDetails };
+
+
+const sendForgotOtp = async (req, res) => {
+  try {
+    console.log("Request Body:", req.body);
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required!" });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: "Email not registered!" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const created_at = new Date();
+
+    // Remove existing OTPs
+    await sequelize.query(
+      'DELETE FROM password_resets WHERE email = ?',
+      {
+        replacements: [email],
+        type: sequelize.QueryTypes.DELETE,
+      }
+    );
+
+    // Save new OTP
+    await sequelize.query(
+      'INSERT INTO password_resets (email, token, created_at) VALUES (?, ?, ?)',
+      {
+        replacements: [email, otp, created_at],
+        type: sequelize.QueryTypes.INSERT,
+      }
+    );
+
+    // Send OTP via email (configure in prod)
+    // const transporter = nodemailer.createTransport({
+    //   service: 'gmail',
+    //   auth: {
+    //     user: 'your@email.com',
+    //     pass: 'your-app-password'
+    //   }
+    // });
+
+    // await transporter.sendMail({
+    //   from: '"Support" <your@email.com>',
+    //   to: email,
+    //   subject: 'Your OTP for Password Reset',
+    //   text: `Your verification code is: ${otp}`
+    // });
+
+    return res.status(200).json({ success: true, message: "OTP sent to your email!" });
+
+  } catch (error) {
+    console.error("Forgot OTP send error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+  
+module.exports = { register ,login,forgotPassword,sendForgotOtp };
