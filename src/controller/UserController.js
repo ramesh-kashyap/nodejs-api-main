@@ -4,6 +4,7 @@ const Income = require('../models/Income');
 const Withdraw = require('../models/Withdraw');
 const BuyFund = require('../models/BuyFunds');
 const Server = require('../models/Servers');
+const Trade = require('../models/Trade');
 const { calculateAvailableBalance } = require("../helper/helper");
 const axios = require('axios');
 const sequelize = require('../config/connectDB');
@@ -637,4 +638,99 @@ const fetchwallet = async (req, res) => {
     }
   };
 
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers};
+  const sendtrade = async (req, res) => {
+    console.log(req.body);
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }
+      const { symbol, selectedServer, amount, period, buyInsurance } = req.body.postData;
+      console.log( symbol, selectedServer, amount, period, buyInsurance );
+      if (!selectedServer || !amount) {
+        return res.status(400).json({ message: "Missing selectedServer or amount!" });
+      }
+  
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+  
+      // Check user balance
+      const availableBal = await getAvailableBalance(userId);
+      if (parseFloat(availableBal) < parseFloat(amount)) {
+        return res.status(400).json({ success: false, message: "Insufficient balance!" });
+      }
+  
+      // Find server
+      const server = await Investment.findOne({
+        where: {
+          serverhash: selectedServer,
+          user_id: userId
+        }
+      });
+  
+      if (!server) {
+        return res.status(404).json({ success: false, message: "Server not found!" });
+      }
+
+      server.sdate = new Date();
+      const now = new Date();
+      const end = new Date(now.getTime() + parseFloat(period) * 60 * 60 * 1000); // period in hours
+
+      await Trade.create({
+        user_id: userId,
+        currency: symbol,
+         selectedServer,
+         amount,
+         period,
+        insurance: buyInsurance,
+        entrytime: now,
+        endtime: end,
+      });
+
+      return res.status(200).json({ success: true, message: "Server renewed successfully", server });
+  
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
+  const runingtrade = async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized user" });
+      }
+  
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+  
+      const now = new Date();
+  
+      const expiredTrades = await Trade.findAll({
+        where: {
+          user_id: userId,
+          endtime: {
+            [Op.lt]: now // less than current time
+          }
+        }
+      });
+      const runingTrades = await Trade.findAll({
+        where: {
+          user_id: userId,
+          endtime: { [Op.gt]: now }
+        }
+      });
+  
+      return res.status(200).json({ success: true, runingTrades, expiredTrades });
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade};
