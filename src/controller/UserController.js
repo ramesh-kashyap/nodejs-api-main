@@ -661,8 +661,6 @@ const fetchwallet = async (req, res) => {
       if (parseFloat(availableBal) < parseFloat(amount)) {
         return res.status(400).json({ success: false, message: "Insufficient balance!" });
       }
-  
-      // Find server
       const server = await Investment.findOne({
         where: {
           serverhash: selectedServer,
