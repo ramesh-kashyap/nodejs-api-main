@@ -619,12 +619,25 @@ const fetchwallet = async (req, res) => {
         return res.status(404).json({ message: "User not found!" });
       }  
       
+      const blockedTrades = await Trade.findAll({
+      where: {
+        user_id: userId,
+        plan: 0
+      },
+      attributes: ['selectedServer']
+    });
+
+    const blockedServerHashes = blockedTrades.map(trade => trade.selectedServer);
+
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const server = await Investment.findAll({
         where: {
           user_id: userId,
+          serverhash: {
+            [Op.notIn]: blockedServerHashes
+          },
           sdate: {
             [Op.gte]: thirtyDaysAgo // ✅ Newer than 30 days ago
           }
@@ -633,7 +646,7 @@ const fetchwallet = async (req, res) => {
           ['sdate', 'DESC']
         ],
         limit: 5,
-        attributes: ['serverhash', 'plan', 'sdate', 'amount', 'period', 'period_end'],
+        attributes: ['serverhash', 'plan', 'sdate','invest_amount', 'amount', 'period', 'period_end'],
       });
 
       return res.status(200).json({
