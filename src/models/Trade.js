@@ -13,7 +13,7 @@ const BuyFund = sequelize.define(
     insurance: { type: DataTypes.INTEGER, allowNull: true }, 
     entrytime: { type: DataTypes.DATE, allowNull: true },   
     endtime: { type: DataTypes.DATE, allowNull: true },  
-    plan: { type: DataTypes.DATE, allowNull: true },
+    plan: { type: DataTypes.INTEGER, allowNull: true },
   },
   {
     tableName: "trades",

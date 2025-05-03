@@ -28,7 +28,7 @@ const available_balance = async (req, res) => {
   
       const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
       const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
-      const investment = await Investment.sum('invest_amount', { where: { user_id: userId } }) || 0;
+      const investment = await Investment.sum('amount', { where: { user_id: userId } }) || 0;
       const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
   
       const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
@@ -57,7 +57,7 @@ const available_balance = async (req, res) => {
   
     const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
     const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
-    const investment = await Investment.sum('invest_amount', { where: { user_id: userId } }) || 0;
+    const investment = await Investment.sum('amount', { where: { user_id: userId } }) || 0;
     const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
   
     const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
@@ -79,7 +79,7 @@ const available_balance = async (req, res) => {
 //       }
 //       const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;   
 //       if (totalCommission <= 0) {
-//         return res.status(400).json({ message: "You don't have enough balance to withdraw." });
+//         return res.json({ message: "You don't have enough balance to withdraw." });
 //       }
 //       const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
 //       const availableBal = totalCommission - totalWithdraw;
@@ -180,7 +180,7 @@ const fetchwallet = async (req, res) => {
           data: response.data
         });
       } else {
-        return res.status(400).json({
+        return res.json({
           success: false,
           message: "Failed to create wallet address",
           data: response.data
@@ -215,7 +215,7 @@ const fetchwallet = async (req, res) => {
   
         const existingInvestment = await BuyFund.findOne({ where: { txn_no: txnId } });
         if (!existingInvestment) {
-          console.log(`Processing new transaction: ${txnId} for user: ${userName}`);
+          // console.log(`Processing new transaction: ${txnId} for user: ${userName}`);
   
           const amount = parseFloat(queryData.value_coin).toFixed(2);
           const blockchain = queryData.coin === 'bep20_usdt' ? 'USDT_BSC' : 'USDT_TRON';
@@ -298,11 +298,11 @@ const fetchwallet = async (req, res) => {
   
     //   const amount = parseFloat(amount);
       if (amount <= 0) {
-        return res.status(400).json({ message: "Invalid withdrawal amount!" });
+        return res.json({ message: "Invalid withdrawal amount!" });
       }      
       if (currency === "USDT") {
         if (user.usdt < amount) {
-          return res.status(400).json({ message: "Insufficient USDT balance!" });
+          return res.json({ message: "Insufficient USDT balance!" });
         }        
         await User.update(
           { usdt: user.usdt - amount },
@@ -311,14 +311,14 @@ const fetchwallet = async (req, res) => {
         
       } else if (currency === "AIRO") {
         if (user.airo < amount) {
-          return res.status(400).json({ message: "Insufficient AIRO balance!" });
+          return res.json({ message: "Insufficient AIRO balance!" });
         }
         await User.update(
           { airo: user.airo - amount },
           { where: { id: userId } }
         );
       } else {
-        return res.status(400).json({ message: "Unsupported currency!" });
+        return res.json({ message: "Unsupported currency!" });
       }
      const cutAmount = (amount / 100) * 5; // 5% charge
     const payable = amount - cutAmount;
@@ -408,7 +408,6 @@ const fetchwallet = async (req, res) => {
   };
   
   const processWithdrawal = async (req, res) => {
-    console.log(req.body);
     try {
       const userId = req.user?.id;
       const { wallet ,amount, verificationCode , type} = req.body;
@@ -430,12 +429,12 @@ const fetchwallet = async (req, res) => {
       );
   
       if (!otpRecord) {
-        return res.status(400).json({ message: "Invalid or expired OTP!" });
+        return res.json({ message: "Invalid or expired OTP!" });
       }
       const availableBal = await getAvailableBalance(userId);
   
       if (parseFloat(amount) > availableBal) {
-        return res.status(400).json({ message: "Insufficient balance!" });
+        return res.json({ message: "Insufficient balance!" });
       }
       await Withdraw.create({
         user_id: userId,
@@ -477,8 +476,7 @@ const fetchwallet = async (req, res) => {
     }
   };
   
-  const submitserver = async (req, res) => { 
-    console.log(req.body);
+  const submitserver = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -491,8 +489,17 @@ const fetchwallet = async (req, res) => {
       const { plan, amount, period , period_end} = req.body;  
       const availableBal = await getAvailableBalance(userId);
   
-      if (parseFloat(availableBal) < parseFloat(amount)) {
-        return res.status(400).json({ success: false, message: "Insufficient balance!" });
+      if (parseFloat(availableBal) < parseFloat(plan)) {
+        return res.json({ success: false, message: "Insufficient balance!" });
+      }
+      const checkserver = await Investment.findOne({
+        where: {
+          plan: plan,
+          user_id: userId
+        }
+      });      
+      if (checkserver && checkserver.plan === plan) {
+        return res.status(200).json({ success: false, message: "You can't buy the free server again!" });
       }
       const serverhash = crypto.randomBytes(12).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
   
@@ -502,7 +509,7 @@ const fetchwallet = async (req, res) => {
         invest_amount: amount,
         period: period,
         period_end: period_end,
-        amount: amount,
+        amount: plan,
         serverhash: serverhash,
         sdate: new Date()
       });
@@ -533,6 +540,7 @@ const fetchwallet = async (req, res) => {
       const server = await Investment.findAll({
         where: {
           user_id: userId,
+          plan: { [Op.ne]: 0 },
           sdate: {
             [Op.lt]: thirtyDaysAgo
           }
@@ -547,17 +555,16 @@ const fetchwallet = async (req, res) => {
   };
 
   const renewserver = async (req, res) => {
-    console.log(req.body);
     try {
       const userId = req.user?.id;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated!" });
       }
   
-      const { serverhash, amount } = req.body;
+      const { serverhash, amount , plan} = req.body;
   
       if (!serverhash || !amount) {
-        return res.status(400).json({ message: "Missing serverhash or amount!" });
+        return res.json({ message: "Missing serverhash or amount!" });
       }
   
       const user = await User.findOne({ where: { id: userId } });
@@ -568,7 +575,7 @@ const fetchwallet = async (req, res) => {
       // Check user balance
       const availableBal = await getAvailableBalance(userId);
       if (parseFloat(availableBal) < parseFloat(amount)) {
-        return res.status(400).json({ success: false, message: "Insufficient balance!" });
+        return res.json({ success: false, message: "Insufficient balance!" });
       }
   
       // Find server
@@ -580,18 +587,18 @@ const fetchwallet = async (req, res) => {
       });
   
       if (!server) {
-        return res.status(404).json({ success: false, message: "Server not found!" });
-      }
+        return res.status(200).json({ success: false, message: "Server not found!" });
+      }        
   
       // Update server sdate to current time
       server.sdate = new Date();
       await Investment.increment(
-        { invest_amount: parseFloat(amount) },
+        { amount: parseFloat(amount) },
         { where: { serverhash, user_id: userId } }
       );
       
       // server.invest_amount = parseFloat(server.invest_amount) + parseFloat(amount);
-      // await server.save();
+      await server.save();
   
       return res.status(200).json({ success: true, message: "Server renewed successfully", server });
   
@@ -610,7 +617,8 @@ const fetchwallet = async (req, res) => {
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
         return res.status(404).json({ message: "User not found!" });
-      }   
+      }  
+      
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -639,27 +647,25 @@ const fetchwallet = async (req, res) => {
   };
 
   const sendtrade = async (req, res) => {
-    console.log(req.body);
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(401).json({ message: "User not authenticated!" });
+        return res.json({ message: "User not authenticated!" });
       }
-      const { symbol, selectedServer, amount, period, buyInsurance } = req.body.postData;
-      console.log( symbol, selectedServer, amount, period, buyInsurance );
+      const { symbol, selectedServer, amount, period, buyInsurance, plan } = req.body.postData;
       if (!selectedServer || !amount) {
-        return res.status(400).json({ message: "Missing selectedServer or amount!" });
+        return res.json({ message: "Missing selectedServer or amount!" });
       }
   
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(404).json({ message: "User not found!" });
+        return res.json({ message: "User not found!" });
       }
   
       // Check user balance
       const availableBal = await getAvailableBalance(userId);
       if (parseFloat(availableBal) < parseFloat(amount)) {
-        return res.status(400).json({ success: false, message: "Insufficient balance!" });
+        return res.json({ success: false, message: "Insufficient balance!" });
       }
       const server = await Investment.findOne({
         where: {
@@ -669,19 +675,30 @@ const fetchwallet = async (req, res) => {
       });
   
       if (!server) {
-        return res.status(404).json({ success: false, message: "Server not found!" });
+        return res.status(200).json({ success: false, message: "Server not found!" });
       }
-
-      server.sdate = new Date();
       const now = new Date();
-      const end = new Date(now.getTime() + parseFloat(period) * 60 * 60 * 1000); // period in hours
-
+      const buyser = await Trade.findAll({
+        where: {
+          selectedServer: selectedServer,
+          user_id: userId,
+          endtime: {
+            [Op.gt]: now, 
+          }
+        }
+      });
+      if (buyser.length > 0) {
+        return res.status(200).json({ success: false, message: "This server is already running!" });
+      }
+      server.sdate = new Date();      
+      const end = new Date(now.getTime() + parseFloat(period) * 60 * 60 * 1000); 
       await Trade.create({
         user_id: userId,
         currency: symbol,
          selectedServer,
          amount,
          period,
+         plan,
         insurance: buyInsurance,
         entrytime: now,
         endtime: end,
@@ -701,12 +718,10 @@ const fetchwallet = async (req, res) => {
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized user" });
       }
-  
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
         return res.status(404).json({ message: "User not found!" });
       }
-  
       const now = new Date();
   
       const expiredTrades = await Trade.findAll({
