@@ -33,7 +33,7 @@ const User = sequelize.define('User', {
    
     usdtBep20: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true,
     },
     // lastname: {
     //     type: DataTypes.STRING,
