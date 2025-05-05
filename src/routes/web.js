@@ -3,7 +3,7 @@ const router = express.Router();
 const authController = require('../controller/AuthController');
 const UserController = require('../controller/UserController');
 const authMiddleware = require("../middleware/authMiddleware"); // JWT Auth Middleware
-
+const TeamController = require("../controller/TeamController"); 
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
@@ -26,6 +26,10 @@ router.post('/renew-server', authMiddleware, UserController.renewserver);
 router.get('/fetchservers', authMiddleware, UserController.fetchservers);
 router.post('/sendtrade', authMiddleware, UserController.sendtrade);
 router.get('/runingtrade', authMiddleware, UserController.runingtrade);
+router.get('/Getinvate', authMiddleware, TeamController.Getinvate);
+router.get("/team", authMiddleware ,TeamController.getTeam);
+router.get('/list', authMiddleware,TeamController.listUsers);
+
 // router.post('/register', (req, res) => {
 //   res.json({ message: 'Welcome to regiset' });
 // });

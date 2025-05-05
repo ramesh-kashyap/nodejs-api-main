@@ -186,7 +186,7 @@ const listUsers = async (req, res) => {
         } else {
             genTeam = myLevelTeam;
         }
-console.log(selected_level);
+// console.log(selected_level);
 
         // 🔹 Query to get users
         let whereCondition = {
@@ -241,7 +241,36 @@ console.log(selected_level);
 
 
 
+const Getinvate = async (req, res) => { 
+    try {
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }  
+      
+      const user = await User.findOne({ 
+        where: { id: userId },
+        attributes: ['username'] // Fetch only the username
+      });
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }  
+      
+      // Send the username in the response
+      return res.status(200).json({
+        success: true,
+        data: { username: user.username }, // Include only the username
+        message: "Username fetched successfully!"
+      });
+      
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
 
 
 
-module.exports = { getTeam ,listUsers};
+module.exports = { getTeam ,listUsers, Getinvate};
