@@ -639,7 +639,7 @@ const fetchwallet = async (req, res) => {
             [Op.notIn]: blockedServerHashes
           },
           sdate: {
-            [Op.gte]: thirtyDaysAgo // ✅ Newer than 30 days ago
+            [Op.gte]: thirtyDaysAgo // ✅ Newer than 30 days ag
           }
         },
         order: [
