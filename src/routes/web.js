@@ -1,16 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controller/AuthController');
-const UserController = require('../controller/UserController');
-<<<<<<< HEAD
-const transactionController = require('../controller/transactionController');
-const authMiddleware = require("../middleware/authMiddleware"); 
+ const UserController = require('../controller/UserController');
+ const transactionController = require('../controller/transactionController');
 
-=======
+
 const authMiddleware = require("../middleware/authMiddleware"); // JWT Auth Middleware
 const TeamController = require("../controller/TeamController"); 
->>>>>>> a99290626d47ca1b153bae1133cd0a997882af04
-
+ 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/forgotPassword', authController.forgotPassword);
@@ -36,18 +33,15 @@ router.get('/withdraw-history', authMiddleware, UserController.withdrawHistory);
 router.post('/changePassword', authMiddleware, UserController.ChangePassword);
 
 router.get('/fetchservers', authMiddleware, UserController.fetchservers);
-<<<<<<< HEAD
 router.post('/save-address/:networkType', authMiddleware, UserController.saveWalletAddress);
 
 router.get('/getUserHistory', authMiddleware, transactionController.getUserHistory);
 
-=======
 router.post('/sendtrade', authMiddleware, UserController.sendtrade);
 router.get('/runingtrade', authMiddleware, UserController.runingtrade);
 router.get('/Getinvate', authMiddleware, TeamController.Getinvate);
 router.get("/team", authMiddleware ,TeamController.getTeam);
 router.get('/list', authMiddleware,TeamController.listUsers);
->>>>>>> a99290626d47ca1b153bae1133cd0a997882af04
 
 // router.post('/register', (req, res) => {
 //   res.json({ message: 'Welcome to regiset' });
