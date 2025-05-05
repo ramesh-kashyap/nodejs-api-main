@@ -3,6 +3,7 @@ const sequelize = require('../config/connectDB');
 
 const Investment = sequelize.define('Investment', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    user_id_fk: { type: DataTypes.INTEGER, allowNull: true },
     plan: { type: DataTypes.STRING, allowNull: true },
     invest_amount: { type: DataTypes.INTEGER, allowNull: true },
     period: { type: DataTypes.INTEGER, allowNull: true },
