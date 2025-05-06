@@ -4,7 +4,7 @@ const authMiddleware = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(" ")[1]; // "Bearer TOKEN"
         if (!token) {
-            return res.status(401).json({ error: "Unauthorized: Token missing" });
+            return res.status(200).json({success: false, error: "Unauthorized: Token missing" });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -13,7 +13,7 @@ const authMiddleware = async (req, res, next) => {
         
 
         if (!user) {
-    return res.status(401).json({ error: "Unauthorized: User not found" });
+    return res.status(200).json({success: false, error: "Unauthorized: User not found" });
 }
             req.user = user;
         
@@ -21,7 +21,7 @@ const authMiddleware = async (req, res, next) => {
         next();
     } catch (error) {
         console.error("Authentication error:", error);
-        return res.status(401).json({ error: "Invalid token", details: error.message });
+        return res.status(200).json({success: false, error: "Invalid token", details: error.message });
     }
 };
 
