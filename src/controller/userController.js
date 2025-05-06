@@ -17,21 +17,20 @@ const available_balance = async (req, res) => {
       const userId = req.user?.id;
   
       if (!userId) {
-        return res.status(200).json({success: false, message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }
   
       const user = await User.findOne({ where: { id: userId } });
   
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       }
   
       const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
       const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
       const investment = await Investment.sum('amount', { where: { user_id: userId } }) || 0;
       const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
-      const trades = await Trade.sum('amount', { where: { user_id: userId } }) || 0;
-      // console.log(totalCommission,buyFunds, investment,totalWithdraw);
+  
       const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
   
       return res.status(200).json({
@@ -60,7 +59,6 @@ const available_balance = async (req, res) => {
     const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
     const investment = await Investment.sum('amount', { where: { user_id: userId } }) || 0;
     const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
-    const trades = await Trade.sum('amount', { where: { user_id: userId } }) || 0;
   
     const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
   
@@ -117,7 +115,7 @@ const levelTeam = async (req, res) => {
         const userId = req.user.id; // from JWT token
 
         if (!userId) {
-            return res.status(200).json({success: false, error: "Unauthorized!" });
+            return res.status(401).json({ error: "Unauthorized!" });
         }
 
         // Fetch all team recursively
@@ -140,7 +138,7 @@ const direcTeam = async (req, res) => {
         const userId = req.user.id; // from JWT token
 
         if (!userId) {
-            return res.status(200).json({success: false, error: "Unauthorized!" });
+            return res.status(401).json({ error: "Unauthorized!" });
         }
 
         // Fetch all team recursively
@@ -177,7 +175,8 @@ const fetchwallet = async (req, res) => {
       delete response.data.callback_url;
     //   console.log("Wallet Data:", response.data);
       if (response.data.status === "success") {
-        return res.status(200).json({success: true,
+        return res.status(200).json({
+          success: true,
           data: response.data
         });
       } else {
@@ -269,11 +268,11 @@ const fetchwallet = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false,  message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }  
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       }  
     //   const amount = parseFloat(amount);
       return res
@@ -289,12 +288,12 @@ const fetchwallet = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false,  message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }
   
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       }
   
     //   const amount = parseFloat(amount);
@@ -345,12 +344,12 @@ const fetchwallet = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false, message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }
   
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       } 
     //   const amount = parseFloat(amount);
       return res
@@ -365,12 +364,12 @@ const fetchwallet = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false, message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }
   
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       }
   
       const email = user.email;
@@ -414,12 +413,12 @@ const fetchwallet = async (req, res) => {
       const { wallet ,amount, verificationCode , type} = req.body;
   
       if (!userId) {
-        return res.status(200).json({success: false, message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }
   
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       }
       const [otpRecord] = await sequelize.query(
         'SELECT * FROM password_resets WHERE email = ? AND token = ? ORDER BY created_at DESC LIMIT 1',
@@ -461,11 +460,11 @@ const fetchwallet = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false, message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }  
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       } 
     //   const amount = parseFloat(amount);
     const server = await Server.findAll();
@@ -481,13 +480,13 @@ const fetchwallet = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false, message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       } 
-      const { plan, amount, period , period_end, days} = req.body;  
+      const { plan, amount, period , period_end} = req.body;  
       const availableBal = await getAvailableBalance(userId);
   
       if (parseFloat(availableBal) < parseFloat(plan)) {
@@ -512,7 +511,6 @@ const fetchwallet = async (req, res) => {
         period_end: period_end,
         amount: plan,
         serverhash: serverhash,
-        days: days,
         sdate: new Date()
       });
   
@@ -526,61 +524,41 @@ const fetchwallet = async (req, res) => {
 
   const { Op } = require("sequelize");
 
-const fetchrenew = async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(200).json({success: false, message: "User not authenticated!" });
-    }
-
-    const user = await User.findOne({ where: { id: userId } });
-    if (!user) {
-      return res.status(200).json({success: false, message: "User not found!" });
-    }
-
-    const investments = await Investment.findAll({
-      where: {
-        user_id: userId,
-        plan: { [Op.ne]: 0 }
-      },
-      attributes: ['serverhash', 'plan', 'sdate', 'amount']
-    });
-
-    const uniquePlans = [...new Set(investments.map(inv => inv.plan))];
-    const servers = await Server.findAll({
-      where: {
-        plan: { [Op.in]: uniquePlans }
-      },
-      attributes: ['plan', 'days']
-    });
-
-    const serverDaysMap = {};
-    servers.forEach(server => {
-      serverDaysMap[server.plan] = server.days;
-    });
-
-    const now = new Date();
-    const expiredInvestments = investments.filter(inv => {
-      const sdate = new Date(inv.sdate);
-      const planDays = serverDaysMap[inv.plan] || 0;
-      const diffInDays = Math.floor((now - sdate) / (1000 * 60 * 60 * 24));
-      return diffInDays > planDays;
-    });
-
-    return res.status(200).json({ success: true, server: expiredInvestments });
-  } catch (error) {
-    console.error("Something went wrong:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
+  const fetchrenew = async (req, res) => { 
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated!" });
+      }
+      const user = await User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   
+      const server = await Investment.findAll({
+        where: {
+          user_id: userId,
+          plan: { [Op.ne]: 0 },
+          sdate: {
+            [Op.lt]: thirtyDaysAgo
+          }
+        },
+        attributes: ['serverhash', 'plan', 'sdate', 'amount'] // only select these two fields
+      });
+      return res.status(200).json({ success: true, server });
+    } catch (error) {
+      console.error("Something went wrong:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
 
   const renewserver = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false,  message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }
   
       const { serverhash, amount , plan} = req.body;
@@ -591,7 +569,7 @@ const fetchrenew = async (req, res) => {
   
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       }
   
       // Check user balance
@@ -634,11 +612,11 @@ const fetchrenew = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false, message: "User not authenticated!" });
+        return res.status(401).json({ message: "User not authenticated!" });
       }    
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       }  
       
       const blockedTrades = await Trade.findAll({
@@ -682,7 +660,6 @@ const fetchrenew = async (req, res) => {
   };
 
   const sendtrade = async (req, res) => {
-    // console.log(req.body);
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -691,11 +668,14 @@ const fetchrenew = async (req, res) => {
       const { symbol, selectedServer, amount, period, buyInsurance, plan } = req.body.postData;
       if (!selectedServer || !amount) {
         return res.json({ message: "Missing selectedServer or amount!" });
-      }  
+      }
+  
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
         return res.json({ message: "User not found!" });
       }
+  
+      // Check user balance
       const availableBal = await getAvailableBalance(userId);
       if (parseFloat(availableBal) < parseFloat(amount)) {
         return res.json({ success: false, message: "Insufficient balance!" });
@@ -710,29 +690,6 @@ const fetchrenew = async (req, res) => {
       if (!server) {
         return res.status(200).json({ success: false, message: "Server not found!" });
       }
-
-      let minAmount = 0;
-
-      if (plan == 0 || plan == 5) {
-        minAmount = 10;  // Plan 0, 'free' or 5 requires minimum $10
-      } else if (plan == 10) {
-        minAmount = 100;  // Plan 10 requires minimum $100
-      } else if (plan == 50) {
-        minAmount = 500;  // Plan 50 requires minimum $500
-      } else if (plan == 120) {
-        minAmount = 2500;  // Plan 120 requires minimum $2500
-      } else if (plan == 340) {
-        minAmount = 10000;  // Plan 340 requires minimum $10000
-      } else {
-        return res.json({ success: false, message: "Invalid plan amount!" });
-      }
-  
-      // Ensure the amount is greater than the required minimum for the plan
-      if (parseFloat(amount) < minAmount) {
-        return res.json({ success: false, message: `The amount should be greater than or equal to $${minAmount} for this plan.` });
-      }
-      
-
       const now = new Date();
       const buyser = await Trade.findAll({
         where: {
@@ -756,7 +713,6 @@ const fetchrenew = async (req, res) => {
          period,
          plan,
         insurance: buyInsurance,
-        status: 'Running',
         entrytime: now,
         endtime: end,
       });
@@ -773,11 +729,11 @@ const fetchrenew = async (req, res) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
-        return res.status(200).json({success: false, message: "Unauthorized user" });
+        return res.status(401).json({ message: "Unauthorized user" });
       }
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
-        return res.status(200).json({success: false, message: "User not found!" });
+        return res.status(404).json({ message: "User not found!" });
       }
       const now = new Date();
   
@@ -803,4 +759,271 @@ const fetchrenew = async (req, res) => {
     }
   };
 
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade};
+  
+const saveWalletAddress = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { address, verificationCode, networkType } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated!" });
+    }
+
+    const user = await User.findOne({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    // Verify OTP from password_resets table
+    const [otpRecord] = await sequelize.query(
+      'SELECT * FROM password_resets WHERE email = ? AND token = ? ORDER BY created_at DESC LIMIT 1',
+      {
+        replacements: [user.email, verificationCode],
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    if (!otpRecord) {
+      return res.status(400).json({ message: "Invalid or expired verification code!" });
+    }
+
+    const type = networkType?.toLowerCase().trim();
+
+    // Compare current address with saved one
+    if (type === "erc20") {
+      if (user.usdtBep20 === address) {
+        return res.status(200).json({ message: "This ERC20 address is already saved.", alreadySaved: true });
+      }
+      user.usdtBep20 = address;
+    } else if (type === "trc20") {
+      if (user.usdtTrc20 === address) {
+        return res.status(200).json({ message: "This TRC20 address is already saved.", alreadySaved: true });
+      }
+      user.usdtTrc20 = address;
+    } else {
+      return res.status(400).json({ message: "Invalid network type!" });
+    }
+
+    await user.save();
+
+    return res.status(200).json({ success: true, message: "Address saved successfully!" });
+
+  } catch (error) {
+    console.error("Error saving wallet address:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+const InvestHistory = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated!" });
+    }
+    const buy_funds = await BuyFund.findAll({
+      where: { user_id: userId }, // Filter by user_id (logged-in user's ID)
+      order: [['created_at', 'DESC']], // Optional: Order investments by most recent first
+    });
+    // console.log("i am sach",buy_funds);
+    if (!buy_funds) {
+      console.log("debduebu iam sach")
+      return res.status(404).json({ message: "No investments found for this user!" });
+    }
+
+    // Send the fetched investment data in the response
+    return res.status(200).json({
+      success: true,
+      buy_funds,
+    });
+
+  } catch (error) {
+    console.error("Error in fetching investment data:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const withdrawHistory = async (req, res) => {
+  try {
+    // Get user ID from authenticated user (authMiddleware will attach it)
+    const userId = req.user?.id;
+
+    // Debugging: Log the user data to check if it's properly attached to the request
+    console.log("Authenticated user:", req.user);
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated!" });
+    }
+
+    // Fetch withdraws data for the logged-in user
+    const withdraws = await Withdraw.findAll({
+      where: { user_id: userId }, // Filter by user_id (logged-in user's ID)
+      // attributes: ['created_at', 'payable_amt', 'payment_mode', 'txn_id', 'status'], // Specify the fields you want to fetch
+      order: [['created_at', 'DESC']], // Optional: Order withdraws by most recent first
+    });
+
+    if (!withdraws || withdraws.length === 0) {
+      return res.status(404).json({ message: "No withdraw found for this user!" });
+    }
+
+    // Send the fetched investment data in the response
+
+    return res.status(200).json({
+      success: true,
+      withdraws,
+    });
+
+  } catch (error) {
+    console.error("Error in fetching withdraw data:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const ChangePassword = async (req, res) => {
+  try {
+    const { password, password_confirmation, verification_code } = req.body;
+
+    if (!password || !password_confirmation || !verification_code) {
+      return res.status(400).json({ message: "All fields are required!" });
+    }
+
+    if (password !== password_confirmation) {
+      return res.status(400).json({ message: "Passwords do not match!" });
+    }
+
+    // Step 1: Get OTP record from password_resets table
+    const [otpRecord] = await sequelize.query(
+      'SELECT * FROM password_resets WHERE token = ? ORDER BY created_at DESC LIMIT 1',
+      {
+        replacements: [verification_code],
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    if (!otpRecord) {
+      return res.status(404).json({ message: "Invalid or expired verification code!" });
+    }
+
+    // Step 2: Get user using email from OTP record
+    const user = await User.findOne({ where: { email: otpRecord.email } });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    // Step 3: Hash and update password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.PSR = password;
+    await user.save();
+
+    // Step 4: Delete the used token from password_resets table
+    await sequelize.query(
+      'DELETE FROM password_resets WHERE token = ?',
+      {
+        replacements: [verification_code],
+        type: sequelize.QueryTypes.DELETE
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully!"
+    });
+
+  } catch (error) {
+    console.error("Change password error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// get user details 
+const getUserDetails = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated!" });
+    }
+
+    const user = await User.findOne({ where: { id: userId } });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    return res.status(200).json({
+      id: user.id,
+      username: user.username,
+      name: user.name, // Assuming your model has a 'name' field
+      email: user.email, // Assuming 'email' field exists in the user model
+      bep20: user.usdtTrc20,  // Fetching and including 'bep20' address
+      trc20: user.usdtBep20,
+      message: "User details fetched successfully"
+    });
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const PaymentPassword = async (req, res) => {
+  try {
+    const { password, password_confirmation, verification_code } = req.body;
+
+    if (!password || !password_confirmation || !verification_code) {
+      return res.status(400).json({ message: "All fields are required!" });
+    }
+
+    if (password !== password_confirmation) {
+      return res.status(400).json({ message: "Passwords do not match!" });
+    }
+
+    // Step 1: Get OTP record from password_resets table
+    const [otpRecord] = await sequelize.query(
+      'SELECT * FROM password_resets WHERE token = ? ORDER BY created_at DESC LIMIT 1',
+      {
+        replacements: [verification_code],
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    if (!otpRecord) {
+      return res.status(404).json({ message: "Invalid or expired verification code!" });
+    }
+
+    // Step 2: Get user using email from OTP record
+    const user = await User.findOne({ where: { email: otpRecord.email } });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    // Step 3: Hash and update password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.tpassword = hashedPassword;
+    user.TPSR = password;
+    await user.save();
+
+    // Step 4: Delete the used token from password_resets table
+    await sequelize.query(
+      'DELETE FROM password_resets WHERE token = ?',
+      {
+        replacements: [verification_code],
+        type: sequelize.QueryTypes.DELETE
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Tpassword changed successfully!"
+    });
+
+  } catch (error) {
+    console.error("Change password error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade, InvestHistory, withdrawHistory, ChangePassword,saveWalletAddress,getUserDetails,PaymentPassword};
