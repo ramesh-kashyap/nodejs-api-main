@@ -2,7 +2,7 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 require('dotenv').config();
-
+require('./cron/cronController')
 const authRoutes = require('./routes/web');
 // const userRoutes = require('./routes/userRoutes');
 

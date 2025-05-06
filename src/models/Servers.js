@@ -9,6 +9,7 @@ const Server = sequelize.define(
     invest_amount: { type: DataTypes.INTEGER, allowNull: true },
     period: { type: DataTypes.INTEGER, allowNull: true },
     period_end: { type: DataTypes.INTEGER, allowNull: true,},
+    days: { type: DataTypes.INTEGER, allowNull: true,},
   },
   {
     tableName: "servers",

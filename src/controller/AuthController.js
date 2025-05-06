@@ -8,8 +8,9 @@ const jwt = require("jsonwebtoken");
 
 
 const register = async (req, res) => {
+  console.log(req.body);
     try {
-        const { name, phone, email, password, sponsor } = req.body;
+        const { phone, email, password, sponsor, countryCode } = req.body;
         
         if ( !name || !phone || !email || !password || !sponsor) {
             return res.status(400).json({ error: "All fields are required!" });
@@ -62,7 +63,8 @@ const register = async (req, res) => {
             TPSR: tpassword,
             sponsor: sponsorUser.id,
             level: sponsorLevel + 1,  // Default to 0 if sponsor level is not defined, then add 1
-            ParentId: parentId
+            ParentId: parentId,
+            dialCode: countryCode,
         };
   
         // Insert new user into the database
