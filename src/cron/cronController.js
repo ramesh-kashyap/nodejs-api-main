@@ -79,7 +79,7 @@ const processDailyProfits = async () => {
 };
 
 // 🕛 Schedule daily at 12:00 PM
-cron.schedule('0 12 * * *', async () => {
+cron.schedule('0 * * * *', async () => {
   console.log("⏳ Running scheduled daily profit cron...");
   await processDailyProfits();
 });
