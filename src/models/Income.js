@@ -6,7 +6,7 @@ const Income = sequelize.define(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     user_id: { type: DataTypes.INTEGER, allowNull: false },
-    user_id_fk: { type: DataTypes.INTEGER, allowNull: false },
+    user_id_fk: { type: DataTypes.INTEGER, allowNull: true },
     comm: { type: DataTypes.FLOAT, allowNull: true },
     remarks: { type: DataTypes.STRING, allowNull: true },
     amt: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
@@ -15,7 +15,7 @@ const Income = sequelize.define(
     level: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     rname: { type: DataTypes.STRING, allowNull: true },
     fullname: { type: DataTypes.STRING, allowNull: true },
-    today_reward: { type: DataTypes.FLOAT, allowNull: true },
+    // today_reward: { type: DataTypes.FLOAT, allowNull: true },
   },
   {
     tableName: "incomes",

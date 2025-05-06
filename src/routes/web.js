@@ -30,6 +30,8 @@ router.get('/Getinvate', authMiddleware, TeamController.Getinvate);
 router.get("/team", authMiddleware ,TeamController.getTeam);
 router.get('/list', authMiddleware,TeamController.listUsers);
 
+
+
 // router.post('/register', (req, res) => {
 //   res.json({ message: 'Welcome to regiset' });
 // });
