@@ -614,6 +614,7 @@ const fetchrenew = async (req, res) => {
   
 
   const renewserver = async (req, res) => {
+    console.log(req.body);
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -659,7 +660,7 @@ const fetchrenew = async (req, res) => {
       // server.invest_amount = parseFloat(server.invest_amount) + parseFloat(amount);
       await server.save();
 
-      await directIncome(userId, parseFloat(plan), parseFloat(amount));
+      await directIncome(userId, parseFloat(amount), parseFloat(amount));
 
       return res.status(200).json({ success: true, message: "Server renewed successfully", server });
   
