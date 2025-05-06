@@ -30,9 +30,10 @@ const available_balance = async (req, res) => {
       const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
       const investment = await Investment.sum('amount', { where: { user_id: userId } }) || 0;
       const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
-      const trades = await Trade.sum('amount', { where: { user_id: userId } }) || 0;
-      // console.log(totalCommission,buyFunds, investment,totalWithdraw);
-      const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
+      const Rtrades = await Trade.sum('amount', { where: { user_id: userId, status:"Running"} }) || 0;
+      const Ctrades = await Trade.sum('amount', { where: { user_id: userId, status:"Complete"} }) || 0;
+      console.log(totalCommission,buyFunds, investment,totalWithdraw,Ctrades, Rtrades);
+      const availableBal = totalCommission + buyFunds + Ctrades - totalWithdraw - investment- Rtrades;
   
       return res.status(200).json({
         success: true,
@@ -42,7 +43,7 @@ const available_balance = async (req, res) => {
   
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
   
@@ -60,9 +61,10 @@ const available_balance = async (req, res) => {
     const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
     const investment = await Investment.sum('amount', { where: { user_id: userId } }) || 0;
     const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
-    const trades = await Trade.sum('amount', { where: { user_id: userId } }) || 0;
+    const Rtrades = await Trade.sum('amount', { where: { user_id: userId, status:"Running"} }) || 0;
+    const Ctrades = await Trade.sum('amount', { where: { user_id: userId, status:"Complete"} }) || 0;
   
-    const availableBal = totalCommission + buyFunds - totalWithdraw - investment;
+    const availableBal = totalCommission + buyFunds + Ctrades - totalWithdraw - investment-Rtrades;
   
     return parseFloat(availableBal.toFixed(2));
   };
@@ -112,6 +114,41 @@ const fetchTeamRecursive = async (userId, allMembers = []) => {
     return allMembers;
 };
 
+const directIncome = async (userId, plan, amount) => {
+  try {
+    if (!userId) {
+      console.log("Unauthorized!");
+      return;
+    }
+
+    const user = await User.findOne({ where: { id: userId } });
+    if (!user) {
+      console.log("User Not Found!");
+      return;
+    }
+
+    const sponsor = await User.findOne({ where: { id: user.sponsor } });
+    if (!sponsor) {
+      console.log("Sponsor Not Found!");
+      return;
+    }
+
+    const direct = plan / 2;
+    await Income.create({
+      user_id: sponsor.id,
+      amt: amount,
+      comm: direct,
+      remarks: "Direct Income",
+      ttime: new Date(),
+      level: 0,
+    });
+
+  } catch (error) {
+    console.error("Server Error in directIncome:", error.message);
+  }
+};
+
+
 const levelTeam = async (req, res) => {
     try {
         const userId = req.user.id; // from JWT token
@@ -131,7 +168,7 @@ const levelTeam = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching team:", error.message);
-        return res.status(500).json({ error: "Server Error", details: error.message });
+        return res.status(200).json({success: false, error: "Server Error", details: error.message });
     }
 };
 
@@ -154,7 +191,7 @@ const direcTeam = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching team:", error.message);
-        return res.status(500).json({ error: "Server Error", details: error.message });
+        return res.status(200).json({success: false, error: "Server Error", details: error.message });
     }
 };
 
@@ -190,7 +227,7 @@ const fetchwallet = async (req, res) => {
   
     } catch (error) {
       console.error("Error calling external API:", error.response?.data || error.message);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
 
@@ -280,7 +317,7 @@ const fetchwallet = async (req, res) => {
         .status(200).json({success: true, data: user, message: "Amount fetch successfully!" });
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
   const Cwithdarw = async (req, res) => {
@@ -337,7 +374,7 @@ const fetchwallet = async (req, res) => {
         .status(200).json({ message: "Withdrawal request submitted successfully!" });
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
   
@@ -357,7 +394,7 @@ const fetchwallet = async (req, res) => {
         .status(200).json({success: true, trc20: user.usdtTrc20, bep20: user.usdtBep20});
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false,message: "Internal Server Error" });
     }
   };
 
@@ -404,7 +441,7 @@ const fetchwallet = async (req, res) => {
   
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
   
@@ -453,7 +490,7 @@ const fetchwallet = async (req, res) => {
   
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
 
@@ -473,7 +510,7 @@ const fetchwallet = async (req, res) => {
         .status(200).json({success: true, server: server});
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
   
@@ -515,12 +552,12 @@ const fetchwallet = async (req, res) => {
         days: days,
         sdate: new Date()
       });
-  
+      await directIncome(userId, parseFloat(plan), parseFloat(plan));
       return res.status(200).json({ success: true, server: server });
   
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
 
@@ -570,7 +607,7 @@ const fetchrenew = async (req, res) => {
     return res.status(200).json({ success: true, server: expiredInvestments });
   } catch (error) {
     console.error("Something went wrong:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(200).json({success: false, message: "Internal Server Error" });
   }
 };
 
@@ -621,12 +658,14 @@ const fetchrenew = async (req, res) => {
       
       // server.invest_amount = parseFloat(server.invest_amount) + parseFloat(amount);
       await server.save();
-  
+
+      await directIncome(userId, parseFloat(plan), parseFloat(amount));
+
       return res.status(200).json({ success: true, message: "Server renewed successfully", server });
   
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
   
@@ -677,7 +716,7 @@ const fetchrenew = async (req, res) => {
       });
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false,message: "Internal Server Error" });
     }
   };
 
@@ -765,7 +804,7 @@ const fetchrenew = async (req, res) => {
   
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false, message: "Internal Server Error" });
     }
   };
 
@@ -799,7 +838,7 @@ const fetchrenew = async (req, res) => {
       return res.status(200).json({ success: true, runingTrades, expiredTrades });
     } catch (error) {
       console.error("Something went wrong:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(200).json({success: false,message: "Internal Server Error" });
     }
   };
 
