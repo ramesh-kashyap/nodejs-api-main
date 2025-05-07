@@ -59,7 +59,7 @@ const processDailyProfits = async () => {
         credit_type: 0,
         level: 0,
         type: 'ROI',
-        remarks: `Trade Income`,
+        remarks: 'Trade Income',
       });
 
       // ✅ Update trade status after income created
@@ -69,8 +69,7 @@ const processDailyProfits = async () => {
           { where: { id: tradeId } }
         );
 
-        console.log(`✅ Income sent to user ${userId} from server ${serverHash}: $${roiAmount} (${(roiPercent * 100).toFixed(2)}%)`);
-      }
+       }
     }
 
   } catch (error) {
@@ -79,10 +78,10 @@ const processDailyProfits = async () => {
 };
 
 // 🕛 Schedule daily at 12:00 PM
-cron.schedule('0 12 * * *', async () => {
+cron.schedule('0 * * * *', async () => {
   console.log("⏳ Running scheduled daily profit cron...");
   await processDailyProfits();
 });
 
 // 🧪 Optional: Run immediately for testing
-processDailyProfits();
+ processDailyProfits();
