@@ -120,19 +120,16 @@ const directIncome = async (userId, plan, amount) => {
       console.log("Unauthorized!");
       return;
     }
-
     const user = await User.findOne({ where: { id: userId } });
     if (!user) {
       console.log("User Not Found!");
       return;
     }
-
     const sponsor = await User.findOne({ where: { id: user.sponsor } });
     if (!sponsor) {
       console.log("Sponsor Not Found!");
       return;
     }
-
     const direct = plan / 2;
     await Income.create({
       user_id: sponsor.id,
