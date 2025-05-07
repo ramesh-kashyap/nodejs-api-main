@@ -137,14 +137,14 @@ const processDailyProfits = async () => {
            if (commissionAmount > 0) {
                try {
                    await Income.create({
-                       user_id: userId,
+                       user_id: levelUser.id,
                        user_id_fk: tradeId,
                        amt: amount,
                        comm: commissionAmount,
                        ttime: new Date(),
                        credit_type: 1,  // Commission
                        level: levelUser.level,
-                       remarks: `Level ${levelUser.level} ROI Income from user ${userId}`,
+                       remarks: `ROI Income`,
                    });
                    console.log(`💰 Level ${levelUser.level} commission sent to user ${levelUser.id}: $${commissionAmount}`);
                } catch (error) {

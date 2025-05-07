@@ -29,7 +29,7 @@ router.get('/runingtrade', authMiddleware, UserController.runingtrade);
 router.get('/Getinvate', authMiddleware, TeamController.Getinvate);
 router.get("/team", authMiddleware ,TeamController.getTeam);
 router.get('/list', authMiddleware,TeamController.listUsers);
-
+router.get('/serverc', authMiddleware, UserController.serverc);
 
 
 // router.post('/register', (req, res) => {

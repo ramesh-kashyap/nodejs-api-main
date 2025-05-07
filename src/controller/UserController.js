@@ -117,17 +117,14 @@ const fetchTeamRecursive = async (userId, allMembers = []) => {
 const directIncome = async (userId, plan, amount) => {
   try {
     if (!userId) {
-      console.log("Unauthorized!");
       return;
     }
     const user = await User.findOne({ where: { id: userId } });
     if (!user) {
-      console.log("User Not Found!");
       return;
     }
     const sponsor = await User.findOne({ where: { id: user.sponsor } });
     if (!sponsor) {
-      console.log("Sponsor Not Found!");
       return;
     }
     const direct = plan / 2;
@@ -611,7 +608,7 @@ const fetchrenew = async (req, res) => {
   
 
   const renewserver = async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -840,4 +837,33 @@ const fetchrenew = async (req, res) => {
     }
   };
 
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade};
+  const serverc = async (req, res) => {
+    try {
+       const userId = req.user?.id;
+       if (!userId) {
+          return res.status(401).json({ success: false, message: "Unauthorized user" });
+       }
+ 
+       const user = await User.findOne({ where: { id: userId } });
+       if (!user) {
+          return res.status(404).json({ success: false, message: "User not found!" });
+       }
+ 
+       // ✅ Corrected the Income sum query
+       const serverInc = await Income.sum('comm', {
+          where: { user_id: userId, remarks: "Direct Income" },
+       });
+      
+       return res.status(200).json({
+          success: true,
+          totalIncome: serverInc || 0,
+       });
+ 
+    } catch (error) {
+       console.error("❌ Internal Server Error:", error);
+       return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+ };
+` ` 
+
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade, serverc};
