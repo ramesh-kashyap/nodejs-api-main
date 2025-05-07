@@ -3,12 +3,16 @@ const bcrypt = require("bcryptjs");
 require('dotenv').config();
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+
+
+
+
 const register = async (req, res) => {
   console.log(req.body);
     try {
-        const { phone, email, password, sponsor, countryCode } = req.body;
+        const { name, phone, email, password, sponsor, countryCode } = req.body;
         
-        if ( !phone || !email || !password || !sponsor) {
+        if ( !name || !phone || !email || !password || !sponsor) {
             return res.status(400).json({ error: "All fields are required!" });
         }
   
@@ -49,6 +53,7 @@ const register = async (req, res) => {
   
         // Construct new user object
         const newUser = {
+            name,
             phone,
             email,
             username,
@@ -102,6 +107,7 @@ const login = async (req, res) => {
       }
   
       // Generate a JWT token.
+      
       const token = jwt.sign(
         { id: user.id },
         process.env.JWT_SECRET,  
@@ -121,4 +127,129 @@ const login = async (req, res) => {
   };
 
 
-module.exports = { register ,login};
+
+
+  const forgotPassword = async (req, res) => {
+    try {
+      const { email, password, password_confirmation, verification_code } = req.body;
+  
+      if (!email || !password || !password_confirmation || !verification_code) {
+        return res.status(400).json({ message: "All fields are required!" });
+      }
+  
+      if (password !== password_confirmation) {
+        return res.status(400).json({ message: "Passwords do not match!" });
+      }
+  
+      const [otpRecord] = await sequelize.query(
+        'SELECT * FROM password_resets WHERE email = ? AND token = ? ORDER BY created_at DESC LIMIT 1',
+        {
+          replacements: [email, verification_code],
+          type: sequelize.QueryTypes.SELECT
+        }
+      );
+  
+      if (!otpRecord) {
+        return res.status(400).json({ message: "Invalid or expired verification code!" });
+      }
+  
+      const user = await User.findOne({ where: { email } });
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+  
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+      user.PSR = password;
+      await user.save();
+  
+     
+      // await password_resets.destroy({ where: { email, token: verification_code } });
+  
+      return res.status(200).json({
+        success: true,
+        message: "Password reset successfully!"
+      });
+  
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  
+
+
+const sendForgotOtp = async (req, res) => {
+  try {
+    console.log("Request Body:", req.body);
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required!" });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: "Email not registered!" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const created_at = new Date();
+
+    // Remove existing OTPs
+    await sequelize.query(
+      'DELETE FROM password_resets WHERE email = ?',
+      {
+        replacements: [email],
+        type: sequelize.QueryTypes.DELETE,
+      }
+    );
+
+    // Save new OTP
+    await sequelize.query(
+      'INSERT INTO password_resets (email, token, created_at) VALUES (?, ?, ?)',
+      {
+        replacements: [email, otp, created_at],
+        type: sequelize.QueryTypes.INSERT,
+      }
+    );
+
+    // Send OTP via email (configure in prod)
+    // const transporter = nodemailer.createTransport({
+    //   service: 'gmail',
+    //   auth: {
+    //     user: 'your@email.com',
+    //     pass: 'your-app-password'
+    //   }
+    // });
+
+    // await transporter.sendMail({
+    //   from: '"Support" <your@email.com>',
+    //   to: email,
+    //   subject: 'Your OTP for Password Reset',
+    //   text: `Your verification code is: ${otp}`
+    // });
+
+    return res.status(200).json({ success: true, message: "OTP sent to your email!" });
+
+  } catch (error) {
+    console.error("Forgot OTP send error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+  
+module.exports = { register ,login,forgotPassword,sendForgotOtp };
