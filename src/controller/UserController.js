@@ -32,7 +32,7 @@ const available_balance = async (req, res) => {
       const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
       const Rtrades = await Trade.sum('amount', { where: { user_id: userId, status:"Running"} }) || 0;
       const Ctrades = await Trade.sum('amount', { where: { user_id: userId, status:"Complete"} }) || 0;
-      console.log(totalCommission,buyFunds, investment,totalWithdraw,Ctrades, Rtrades);
+      // console.log(totalCommission,buyFunds, investment,totalWithdraw,Ctrades, Rtrades);
       const availableBal = totalCommission + buyFunds + Ctrades - totalWithdraw - investment- Rtrades;
   
       return res.status(200).json({
