@@ -32,7 +32,7 @@ const available_balance = async (req, res) => {
       const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
       const Rtrades = await Trade.sum('amount', { where: { user_id: userId, status:"Running"} }) || 0;
       const Ctrades = await Trade.sum('amount', { where: { user_id: userId, status:"Complete"} }) || 0;
-      console.log(totalCommission,buyFunds, investment,totalWithdraw,Ctrades, Rtrades);
+      // console.log(totalCommission,buyFunds, investment,totalWithdraw,Ctrades, Rtrades);
       const availableBal = totalCommission + buyFunds + Ctrades - totalWithdraw - investment- Rtrades;
   
       return res.status(200).json({
@@ -120,20 +120,17 @@ const directIncome = async (userId, plan, amount) => {
       console.log("Unauthorized!");
       return;
     }
-
     const user = await User.findOne({ where: { id: userId } });
     if (!user) {
       console.log("User Not Found!");
       return;
     }
-
     const sponsor = await User.findOne({ where: { id: user.sponsor } });
     if (!sponsor) {
       console.log("Sponsor Not Found!");
       return;
     }
-
-    const direct = plan / 2;
+     const direct = plan / 2;
     await Income.create({
       user_id: sponsor.id,
       amt: amount,
@@ -207,7 +204,7 @@ const fetchwallet = async (req, res) => {
        const address = currency === 'trc20'
       ? 'TJPhCR5fbJH9fS7ubEQz59FQ4hLbWd9jAh'
       : '0xfff46712792FFeb9f93c530d2413fb99C67332b7';
-      const apiUrl = `https://api.cryptapi.io/${currency}/usdt/create/?callback=https://api.aironetwork.in/api/auth/dynamic-upi-callback?refid=${refid}&address=${address}&pending=0&confirmations=1&email=rameshkashyap8801@gmail.com&post=0&priority=default&multi_token=0&multi_chain=0&convert=0`;
+      const apiUrl = `https://api.cryptapi.io/${currency}/usdt/create/?callback=https://api.aironetwork.in/api/auth/dynamic-upi-callback?refid=${refid}&address=${address}&pending=0&confirmations=1&email=rameshkashyap8801@gmail.com&post=0&priority=default&multi_token=0&multi_chain=0&convert=0;'
 
       // Call the external API
       const response = await axios.get(apiUrl); 
@@ -253,7 +250,7 @@ const fetchwallet = async (req, res) => {
   
         const existingInvestment = await BuyFund.findOne({ where: { txn_no: txnId } });
         if (!existingInvestment) {
-          // console.log(`Processing new transaction: ${txnId} for user: ${userName}`);
+          // console.log(Processing new transaction: ${txnId} for user: ${userName});
   
           const amount = parseFloat(queryData.value_coin).toFixed(2);
           const blockchain = queryData.coin === 'bep20_usdt' ? 'USDT_BSC' : 'USDT_TRON';
@@ -769,7 +766,7 @@ const fetchrenew = async (req, res) => {
   
       // Ensure the amount is greater than the required minimum for the plan
       if (parseFloat(amount) < minAmount) {
-        return res.json({ success: false, message: `The amount should be greater than or equal to $${minAmount} for this plan.` });
+        return res.json({ success: false, message: The amount should be greater than or equal to $${minAmount} for this plan. });
       }
       
 
