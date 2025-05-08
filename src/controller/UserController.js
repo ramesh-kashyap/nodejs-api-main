@@ -1132,4 +1132,21 @@ const PaymentPassword = async (req, res) => {
 };
 
 
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade, serverc,InvestHistory, withdrawHistory, ChangePassword,saveWalletAddress,getUserDetails,PaymentPassword};
+const tradeinc = async (req, res) => {
+    try {
+        const { tradeIds } = req.body;
+        const incomes = await Income.findAll({
+            where: {
+                user_id_fk: tradeIds,
+                remarks: "Trade Income"
+            }
+        });
+        res.status(200).json({ success: true, incomes });
+    } catch (error) {
+        console.error("Error fetching trade incomes:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade, serverc, tradeinc ,InvestHistory, withdrawHistory, ChangePassword,saveWalletAddress,getUserDetails,PaymentPassword};
