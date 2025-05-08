@@ -7,6 +7,7 @@ const authController = require('../controller/AuthController');
 
 const authMiddleware = require("../middleware/authMiddleware"); // JWT Auth Middleware
 const TeamController = require("../controller/TeamController"); 
+const User = require('../models/User');
  
 router.post('/register', authController.register);
 router.post('/login', authController.login);
@@ -42,8 +43,8 @@ router.get('/runingtrade', authMiddleware, UserController.runingtrade);
 router.get('/Getinvate', authMiddleware, TeamController.Getinvate);
 router.get("/team", authMiddleware ,TeamController.getTeam);
 router.get('/list', authMiddleware,TeamController.listUsers);
-
-
+router.get('/serverc', authMiddleware, UserController.serverc);
+router.post('/getTradeIncomes', authMiddleware, UserController.tradeinc);
 
 // router.post('/register', (req, res) => {
 //   res.json({ message: 'Welcome to regiset' });

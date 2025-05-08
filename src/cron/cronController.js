@@ -144,7 +144,7 @@ const processDailyProfits = async () => {
                        ttime: new Date(),
                        credit_type: 1,  // Commission
                        level: levelUser.level,
-                       remarks: `Level ${levelUser.level} ROI Income from user ${userId}`,
+                       remarks: `ROI Income`,
                    });
                    console.log(`💰 Level ${levelUser.level} commission sent to user ${levelUser.id}: $${commissionAmount}`);
                } catch (error) {
