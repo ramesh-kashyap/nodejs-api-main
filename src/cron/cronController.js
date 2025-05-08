@@ -137,7 +137,7 @@ const processDailyProfits = async () => {
            if (commissionAmount > 0) {
                try {
                    await Income.create({
-                       user_id: userId,
+                       user_id: levelUser.id,
                        user_id_fk: tradeId,
                        amt: amount,
                        comm: commissionAmount,
