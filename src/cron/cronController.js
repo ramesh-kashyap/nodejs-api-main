@@ -176,4 +176,4 @@ cron.schedule('0 12 * * *', async () => {
 });
 
 // 🧪 Optional: Run immediately for testing
-processDailyProfits();
+// processDailyProfits();
