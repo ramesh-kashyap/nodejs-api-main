@@ -3,23 +3,33 @@ const router = express.Router();
 const Income = require('../models/Income');
 const Withdraw = require('../models/Withdraw');
 const Investment = require('../models/Investment');
+const BuyFund = require('../models/BuyFunds');
+const User = require('../models/User');
 const getUserHistory = async (req, res) => {
     try {
-      const user = req.user;
+      const userId = req.user?.id;
   
-      if (!user || !user.id) {
-        return res.status(400).json({ error: "User not authenticated" });
+      if (!userId) {
+        return res.status(200).json({success: false, message: "User not authenticated!" });
       }
   
-      const userId = user.id;
+      const user = await User.findOne({ where: { id: userId } });
+  
+      if (!user) {
+        return res.status(200).json({success: false, message: "User not found!" });
+      }
   
       // Fetch from each model
-      const [investmentHistory, incomeHistory, withdrawHistory] = await Promise.all([
+      const [investmentHistory, incomeHistory, buyfunds,withdrawHistory] = await Promise.all([
         Investment.findAll({
           where: { user_id: userId },
           order: [['created_at', 'DESC']]
         }),
         Income.findAll({
+          where: { user_id: userId },
+          order: [['created_at', 'DESC']]
+        }),
+        BuyFund.findAll({
           where: { user_id: userId },
           order: [['created_at', 'DESC']]
         }),
@@ -31,6 +41,7 @@ const getUserHistory = async (req, res) => {
   
       res.json({
         success: true,
+        buyfund: buyfunds,
         investment: investmentHistory,
         income: incomeHistory,
         withdraw: withdrawHistory

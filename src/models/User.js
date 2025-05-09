@@ -35,10 +35,11 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    // lastname: {
-    //     type: DataTypes.STRING,
-    //     allowNull: false
-    // },
+    jdate: {
+        type: DataTypes.DATEONLY,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,  // Automatically sets the current date
+    },
     // user_name: {
     //     type: DataTypes.STRING,
     //     allowNull: true

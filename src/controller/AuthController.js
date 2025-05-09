@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 
 
 const register = async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
     try {
         const { name, phone, email, password, sponsor, countryCode } = req.body;
         
@@ -64,6 +64,7 @@ const register = async (req, res) => {
             sponsor: sponsorUser.id,
             level: sponsorLevel + 1,  // Default to 0 if sponsor level is not defined, then add 1
             ParentId: parentId,
+            jdate: new Date().toISOString().split('T')[0],
             dialCode: countryCode,
         };
   
@@ -182,7 +183,7 @@ const login = async (req, res) => {
 
 const sendForgotOtp = async (req, res) => {
   try {
-    console.log("Request Body:", req.body);
+    // console.log("Request Body:", req.body);
     const { email } = req.body;
 
     if (!email) {

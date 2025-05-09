@@ -9,6 +9,7 @@ const Withdraw = sequelize.define('Withdraw', {
     charge: { type: DataTypes.FLOAT, allowNull: true },
     payable_amt: { type: DataTypes.FLOAT, allowNull: true },
     txn_id: { type: DataTypes.STRING, allowNull: true },
+    remarks: { type: DataTypes.STRING, allowNull: true },
     status: { type: DataTypes.ENUM('Approved', 'Pending', 'Rejected'), defaultValue: 'Pending' },
     payment_mode: {
         type: DataTypes.STRING,

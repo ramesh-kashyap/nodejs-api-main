@@ -12,6 +12,7 @@ const Investment = sequelize.define('Investment', {
     amount: { type: DataTypes.DOUBLE, allowNull: true },
     serverhash: { type: DataTypes.STRING, allowNull: true },
     sdate: {type: DataTypes.DATE, allowNull: true},
+    remarks: {type: DataTypes.STRING, allowNull: true},
     days: { type: DataTypes.INTEGER, allowNull: true,},      
     payment_mode: { type: DataTypes.STRING, allowNull: true },
     active_from: { type: DataTypes.STRING, allowNull: true },

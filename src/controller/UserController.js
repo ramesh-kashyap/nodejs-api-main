@@ -500,8 +500,8 @@ const fetchwallet = async (req, res) => {
       } 
     //   const amount = parseFloat(amount);
     const server = await Server.findAll();
-      return res
-        .status(200).json({success: true, server: server});
+    const plans = await Investment.findAll({where:{user_id: userId}});
+      return res.status(200).json({success: true, server: server, plans:plans});
     } catch (error) {
       console.error("Something went wrong:", error);
       return res.status(200).json({success: false, message: "Internal Server Error" });
@@ -531,7 +531,7 @@ const fetchwallet = async (req, res) => {
         }
       });      
       if (checkserver && checkserver.plan === plan) {
-        return res.status(200).json({ success: false, message: "You can't buy the free server again!" });
+        return res.status(200).json({ success: false, message: "You can't buy this Server again!" });
       }
       const serverhash = crypto.randomBytes(12).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
   
@@ -546,6 +546,9 @@ const fetchwallet = async (req, res) => {
         days: days,
         sdate: new Date()
       });
+
+      updateUserStatus(user);
+    
       await directIncome(userId, parseFloat(plan), parseFloat(plan));
       return res.status(200).json({ success: true, server: server });
   
@@ -933,7 +936,6 @@ const InvestHistory = async (req, res) => {
     });
     // console.log("i am sach",buy_funds);
     if (!buy_funds) {
-      console.log("debduebu iam sach")
       return res.status(404).json({ message: "No investments found for this user!" });
     }
 
@@ -955,7 +957,7 @@ const withdrawHistory = async (req, res) => {
     const userId = req.user?.id;
 
     // Debugging: Log the user data to check if it's properly attached to the request
-    console.log("Authenticated user:", req.user);
+    // console.log("Authenticated user:", req.user);
 
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated!" });
@@ -1149,4 +1151,50 @@ const tradeinc = async (req, res) => {
 };
 
 
-module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade, serverc, tradeinc ,InvestHistory, withdrawHistory, ChangePassword,saveWalletAddress,getUserDetails,PaymentPassword};
+const totalRef = async (req, res) => {
+    try {
+       const userId = req.user?.id;
+       if (!userId) {
+          return res.status(401).json({ success: false, message: "Unauthorized user" });
+       }
+   
+       const user = await User.findOne({ where: { id: userId } });
+       if (!user) {
+          return res.status(404).json({ success: false, message: "User not found!" });
+       }
+   
+       const serverRef = await Income.sum('comm', {
+        where: {
+          user_id: userId,
+          remarks: {
+            [Op.in]: ['Direct Income', 'ROI Income'],
+          },
+        },
+      })
+     
+       return res.status(200).json({
+          success: true,
+          totalIncome: serverRef || 0,
+       });
+   
+    } catch (error) {
+       console.error("❌ Internal Server Error:", error);
+       return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+  };
+   
+  const updateUserStatus = async (user) => {
+    try {
+        if (user && user.status === 'Pending') {
+            await User.update(
+                { status: 'Active' },
+                { where: { id: user.id } }
+            );
+            console.log("User status updated to Active");
+        }
+    } catch (error) {
+        console.error("Failed to update user status:", error);
+    }
+};
+
+module.exports = { levelTeam, direcTeam ,fetchwallet, dynamicUpiCallback, available_balance, withfatch, withreq, sendotp,processWithdrawal, fetchserver, submitserver, getAvailableBalance, fetchrenew, renewserver, fetchservers, sendtrade, runingtrade, serverc, tradeinc ,InvestHistory, withdrawHistory, ChangePassword,saveWalletAddress,getUserDetails,PaymentPassword,totalRef};
