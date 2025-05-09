@@ -1190,8 +1190,8 @@ const totalRef = async (req, res) => {
                 { status: 'Active' },
                 { where: { id: user.id } }
             );
-            console.log("User status updated to Active");
-        }
+            // console.log("User status updated to Active");
+        }   
     } catch (error) {
         console.error("Failed to update user status:", error);
     }
