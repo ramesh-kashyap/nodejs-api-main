@@ -3,11 +3,88 @@ const Income = require('../models/Income');
 const Withdraw = require('../models/Withdraw');
 const Investment = require('../models/Investment');
 const User = require('../models/User');
-
+const BuyFund = require('../models/BuyFunds');
+const Trade = require('../models/Trade');
 const { Op } = require('sequelize');
 const jwt = require("jsonwebtoken");
 const authMiddleware = require('../middleware/authMiddleware');
 
+const getAvailableBalance = async (userId) => {
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+  
+    const user = await User.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error("User not found");
+    }
+  
+    const totalCommission = await Income.sum('comm', { where: { user_id: userId } }) || 0;
+    const buyFunds = await BuyFund.sum('amount', { where: { user_id: userId } }) || 0;
+    const investment = await Investment.sum('amount', { where: { user_id: userId } }) || 0;
+    const totalWithdraw = await Withdraw.sum('amount', { where: { user_id: userId } }) || 0;
+    const Rtrades = await Trade.sum('amount', { where: { user_id: userId, status:"Running"} }) || 0;
+    const Ctrades = await Trade.sum('amount', { where: { user_id: userId, status:"Complete"} }) || 0;
+  
+    const availableBal = totalCommission + buyFunds + Ctrades - totalWithdraw - investment-Rtrades;
+  
+    return parseFloat(availableBal.toFixed(2));
+  };
+
+  const getIncome = async (userId) => {
+    if (!userId) throw new Error("User not authenticated");
+
+    // Set the date range for yesterday
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Fetch Trade Income
+    const tradeIncome = await Income.sum('comm', {
+        where: {
+            user_id: userId,
+            remarks: "Trade Income",
+            created_at: {
+                [Op.between]: [yesterday, today],
+            },
+        },
+    }) || 0;
+
+    // Fetch Server Income
+    const serverIncome = await Income.sum('comm', {
+        where: {
+            user_id: userId,
+            remarks: "Direct Income",
+            created_at: {
+                [Op.between]: [yesterday, today],
+            },
+        },
+    }) || 0;
+    const totalTradeIncome = await Income.sum('comm', {
+        where: {
+            user_id: userId,
+            remarks: "Trade Income",
+        },
+    }) || 0;
+
+    const totalServerIncome = await Income.sum('comm', {
+        where: {
+            user_id: userId,
+            remarks: "Direct Income",
+        },
+    }) || 0;
+
+    // Return both incomes as an object
+    return {
+        tradeIncome: parseFloat(tradeIncome.toFixed(6)),
+        serverIncome: parseFloat(serverIncome.toFixed(6)),
+        totalTradeIncome: parseFloat(totalTradeIncome.toFixed(6)),
+        totalServerIncome: parseFloat(totalServerIncome.toFixed(6)),
+    };
+};
 
 
 const getUsersByIds = async (ids) => {
@@ -225,8 +302,21 @@ const listUsers = async (req, res) => {
             offset: req.query.page ? (parseInt(req.query.page) - 1) * limit : 0,
         });
 
+        const usersWithDetails = await Promise.all(rows.map(async (user) => {
+            const availableBalance = await getAvailableBalance(user.id);
+            const { tradeIncome, serverIncome, totalTradeIncome, totalServerIncome } = await getIncome(user.id); // Fetch both incomes
+            return {
+                ...user.toJSON(),
+                available_balance: availableBalance,
+                trade_income: tradeIncome,
+                server_income: serverIncome,
+                totalTradeIncome: totalTradeIncome,
+                totalServerIncome: totalServerIncome,
+            };
+        }));
+
         return res.status(200).json({
-            direct_team: rows,
+            direct_team: usersWithDetails,
             search: search,
             page: req.query.page || 1,
             total: count,
