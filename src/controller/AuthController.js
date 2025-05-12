@@ -8,7 +8,6 @@ const sendEmail = require('../utils/sendEmail');
 
 
 const register = async (req, res) => {
-  // console.log(req.body);
     try {
         const { name, phone, email, password, sponsor, countryCode } = req.body;
         
@@ -183,7 +182,6 @@ const login = async (req, res) => {
 
 const sendForgotOtp = async (req, res) => {
   try {
-    // console.log("Request Body:", req.body);
     const { email } = req.body;
 
     if (!email) {

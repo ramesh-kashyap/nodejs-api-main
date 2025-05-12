@@ -394,7 +394,6 @@ const fetchwallet = async (req, res) => {
   };
 
   const sendotp = async (req, res) => {
-    console.log("helo");
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -447,7 +446,6 @@ const fetchwallet = async (req, res) => {
         if (!emailSent) {
             return res.status(500).json({ success: false, message: "Failed to send OTP email" });
         }
-      console.log("emailSent");
       return res.status(200).json({ success: true, message: "OTP sent successfully" });
   
     } catch (error) {
