@@ -11,6 +11,7 @@ const sequelize = require('../config/connectDB');
 const Investment = require('../models/Investment');
 const crypto = require('crypto');
 
+const sendEmail = require('../utils/sendEmail');
 
 const available_balance = async (req, res) => {
     try {
@@ -393,6 +394,7 @@ const fetchwallet = async (req, res) => {
   };
 
   const sendotp = async (req, res) => {
+    console.log("helo");
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -431,6 +433,21 @@ const fetchwallet = async (req, res) => {
           type: sequelize.QueryTypes.INSERT,
         }
       );
+
+        const message = `
+            <h2>OTP Verification</h2>
+            <p>Hello ${user.name || "User"},</p>
+            <p>Your OTP code is: <strong>${otp}</strong></p>
+            <p>This code will expire in 5 minutes.</p>
+            <p>Thank you for using our service.</p>
+        `;
+        
+        const emailSent = await sendEmail(email, "Your OTP Code", message);
+    
+        if (!emailSent) {
+            return res.status(500).json({ success: false, message: "Failed to send OTP email" });
+        }
+      console.log("emailSent");
       return res.status(200).json({ success: true, message: "OTP sent successfully" });
   
     } catch (error) {

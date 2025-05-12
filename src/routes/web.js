@@ -40,7 +40,7 @@ router.get('/getUserHistory', authMiddleware, transactionController.getUserHisto
 
 router.post('/sendtrade', authMiddleware, UserController.sendtrade);
 router.get('/runingtrade', authMiddleware, UserController.runingtrade);
-router.get('/Getinvate', authMiddleware, TeamController.Getinvate);
+router.get('/getinvate', authMiddleware, TeamController.Getinvate);
 router.get("/team", authMiddleware ,TeamController.getTeam);
 router.get('/list', authMiddleware,TeamController.listUsers);
 router.get('/serverc', authMiddleware, UserController.serverc);
