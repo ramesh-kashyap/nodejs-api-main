@@ -18,6 +18,10 @@ const BuyFund = sequelize.define(
     entrytime: { type: DataTypes.DATE, allowNull: true },   
     endtime: { type: DataTypes.DATE, allowNull: true },  
     plan: { type: DataTypes.INTEGER, allowNull: true },
+    created_at: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
   },
   {
     tableName: "trades",

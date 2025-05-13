@@ -24,6 +24,10 @@ const Withdraw = sequelize.define('Withdraw', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    created_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
 }, {
     tableName: 'withdraws',
     timestamps: false

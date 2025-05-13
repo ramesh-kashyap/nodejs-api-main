@@ -15,6 +15,10 @@ const Income = sequelize.define(
     level: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     rname: { type: DataTypes.STRING, allowNull: true },
     fullname: { type: DataTypes.STRING, allowNull: true },
+    created_at: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
     // today_reward: { type: DataTypes.FLOAT, allowNull: true },
   },
   {

@@ -5,6 +5,7 @@ const Server = sequelize.define(
   "server",
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    title: { type: DataTypes.STRING, allowNull: true },
     plan: { type: DataTypes.STRING, allowNull: true },
     invest_amount: { type: DataTypes.INTEGER, allowNull: true },
     period: { type: DataTypes.INTEGER, allowNull: true },
